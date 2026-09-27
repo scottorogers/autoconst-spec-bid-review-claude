@@ -1,0 +1,471 @@
+{
+  "_readme": "Price-impacting requirements estimators scan specs for. Boilerplate (ACI, aggregate, psi...) is deliberately excluded. 'match' is a case-insensitive regex; a literal space matches space OR hyphen (so 'epoxy coated' also finds 'epoxy-coated'); write an optional separator as (?: )?. Never put a space inside [brackets]. Add items per client scope.",
+  "concrete": [
+    {
+      "item": "Epoxy-coated reinforcing",
+      "match": "epoxy coated (?:reinforc\\w*|rebar|bars?|steel)",
+      "why": "premium over uncoated bar; coating touch-up and handling"
+    },
+    {
+      "item": "Galvanized reinforcing",
+      "match": "galvanized (?:reinforc\\w*|rebar|bars?)",
+      "why": "premium over uncoated bar"
+    },
+    {
+      "item": "Post-tensioning",
+      "match": "post tension\\w*",
+      "why": "specialty subcontractor, stressing, engineering"
+    },
+    {
+      "item": "Architectural / exposed finish",
+      "match": "architectural (?:concrete|finish\\w*)|exposed concrete (?:finish|surfaces?)|form liners?",
+      "why": "premium formwork and finishing labor"
+    },
+    {
+      "item": "Sandblast / bush-hammer / exposed aggregate",
+      "match": "sand(?: )?blast\\w*|bush hammer\\w*|exposed aggregate",
+      "why": "extra surface-finishing labor"
+    },
+    {
+      "item": "Mock-up",
+      "match": "mock(?: )?ups?",
+      "why": "mock-up panel material, labor and schedule"
+    },
+    {
+      "item": "Waterstops",
+      "match": "water(?: )?stops?",
+      "why": "material and labor at every joint"
+    },
+    {
+      "item": "Vapor retarder / barrier",
+      "match": "vapou?r (?:retarder|barrier)s?",
+      "why": "material and labor under slabs"
+    },
+    {
+      "item": "Corrosion inhibitor",
+      "match": "corrosion inhibit\\w* (?:admixture|in concrete)|calcium nitrite",
+      "why": "admixture premium"
+    },
+    {
+      "item": "Silica fume",
+      "match": "silica fume|microsilica",
+      "why": "admixture premium, harder finishing"
+    },
+    {
+      "item": "High-early strength",
+      "match": "high early (?:strength )?(?:concrete|cement|mix\\w*)",
+      "why": "mix premium"
+    },
+    {
+      "item": "Lightweight concrete",
+      "match": "light(?: )?weight concrete",
+      "why": "mix premium, pumping"
+    },
+    {
+      "item": "Hot / cold weather concreting",
+      "match": "hot weather (?:concret\\w*|plan|placement)|cold weather (?:concret\\w*|protection|plan|placement)",
+      "why": "protection, heating/cooling, plan submittal"
+    },
+    {
+      "item": "Mass concrete / thermal control",
+      "match": "mass concrete|thermal control|temperature monitoring",
+      "why": "special mix, sensors, monitoring"
+    },
+    {
+      "item": "Extended wet curing",
+      "match": "(?:wet|moist) cur(?:e|ing)|curing blankets?|\\d+ days? (?:of )?(?:wet|moist) cur",
+      "why": "curing labor and materials"
+    },
+    {
+      "item": "Floor flatness (FF/FL)",
+      "match": "F[FL] ?\\d{2}|FF/FL|flatness",
+      "why": "tighter tolerance, laser screed, extra finishing"
+    },
+    {
+      "item": "Densifier / sealer",
+      "match": "densifier|(?:concrete|floor|penetrating) seal(?:er|ant)s?",
+      "why": "floor treatment material and labor"
+    },
+    {
+      "item": "Non-shrink grout",
+      "match": "non shrink grout",
+      "why": "material premium"
+    },
+    {
+      "item": "Mechanical splices",
+      "match": "mechanical (?:bar )?splices?|couplers?",
+      "why": "splice hardware vs lap splices"
+    },
+    {
+      "item": "Fiber reinforcement",
+      "match": "fiber reinforc\\w*|(?:synthetic|steel|macro synthetic|polypropylene) fibers?",
+      "why": "mix premium"
+    },
+    {
+      "item": "Superplasticizer",
+      "match": "superplasticizer|high range water reduc\\w*",
+      "why": "admixture and dosing plan"
+    },
+    {
+      "item": "Tremie / underwater placement",
+      "match": "tremie|underwater (?:placement|concrete)",
+      "why": "specialty placement"
+    },
+    {
+      "item": "Shotcrete",
+      "match": "shotcrete",
+      "why": "specialty placement"
+    }
+  ],
+  "mep": [
+    {
+      "item": "Duct leakage testing",
+      "match": "duct(?:work)? leakage test\\w*|leakage test\\w* (?:of|for) (?:the )?(?:duct|ductwork)",
+      "why": "testing labor and retest risk"
+    },
+    {
+      "item": "Duct smoke detectors",
+      "match": "duct smoke detectors?",
+      "why": "devices plus fire-alarm coordination"
+    },
+    {
+      "item": "Continuously welded fittings",
+      "match": "continuous(?:ly)? welded",
+      "why": "welded vs standard fittings"
+    },
+    {
+      "item": "Duct lining",
+      "match": "(?:acoustic\\w* |internal )?duct lin(?:ing|er)",
+      "why": "material and labor"
+    },
+    {
+      "item": "Duct cleaning",
+      "match": "duct cleaning",
+      "why": "specialty service"
+    },
+    {
+      "item": "Motorized / remote dampers",
+      "match": "remote damper operators?|motori[sz]ed dampers?",
+      "why": "devices plus controls"
+    },
+    {
+      "item": "Fire / smoke dampers",
+      "match": "fire(?: and)?(?: smoke)? dampers?|smoke dampers?",
+      "why": "devices, access doors, inspection"
+    },
+    {
+      "item": "Seismic bracing",
+      "match": "seismic (?:bracing|restraints?|supports?)",
+      "why": "engineered bracing"
+    },
+    {
+      "item": "Vibration isolation",
+      "match": "vibration isolat\\w*",
+      "why": "isolators and engineering"
+    },
+    {
+      "item": "Testing, adjusting & balancing",
+      "match": "testing,? adjusting,? and balancing|(?-i:\\bTAB\\b)",
+      "why": "TAB contractor"
+    },
+    {
+      "item": "Commissioning",
+      "match": "commissioning|\\bCx\\b",
+      "why": "commissioning support labor"
+    },
+    {
+      "item": "O&M manuals",
+      "match": "O ?& ?M manuals?|operation(?:s)? and maintenance (?:manuals?|data)",
+      "why": "documentation cost"
+    },
+    {
+      "item": "Owner training",
+      "match": "(?:owner|operator)'?s? (?:personnel )?training|instruct(?:ion of)? (?:the )?owner",
+      "why": "training hours"
+    },
+    {
+      "item": "Compression fittings",
+      "match": "compression (?:type )?fittings?",
+      "why": "priced higher than set-screw fittings"
+    },
+    {
+      "item": "Insulated throat fittings",
+      "match": "insulated throat",
+      "why": "fitting premium"
+    },
+    {
+      "item": "PVC-coated rigid conduit",
+      "match": "PVC coated (?:rigid|RGS|conduit|elbows?)|coated rigid (?:steel )?(?:conduit|elbows?)",
+      "why": "premium conduit and elbows"
+    },
+    {
+      "item": "Rigid steel / IMC conduit",
+      "match": "rigid (?:galvanized )?steel conduit|\\bRGS\\b|\\bIMC\\b",
+      "why": "priced higher than EMT"
+    },
+    {
+      "item": "MC cable restriction",
+      "match": "MC cable|metal clad cable",
+      "why": "wiring method changes labor - check whether it is allowed"
+    },
+    {
+      "item": "Minimum conduit size",
+      "match": "minimum (?:conduit|raceway) size|(?:conduit|raceway)s? shall (?:be|not be less than) (?:minimum )?\\d",
+      "why": "material upsizing"
+    },
+    {
+      "item": "Concrete-encased duct bank",
+      "match": "concrete encase\\w*|duct ?bank",
+      "why": "trenching and concrete"
+    },
+    {
+      "item": "Temporary power / lighting",
+      "match": "temporary (?:power|lighting|electric\\w*)",
+      "why": "temp power cost"
+    },
+    {
+      "item": "Painted fire-alarm conduit",
+      "match": "(?:paint\\w*|red) (?:fire alarm )?conduits?|fire alarm conduits? (?:shall be )?painted",
+      "why": "painting labor"
+    },
+    {
+      "item": "Electrical testing",
+      "match": "megger|insulation resistance test\\w*|ground(?:ing)? (?:resistance )?test\\w*",
+      "why": "testing labor"
+    },
+    {
+      "item": "Power system studies",
+      "match": "arc flash|short circuit (?:study|analysis)|coordination study",
+      "why": "engineering study cost"
+    },
+    {
+      "item": "Liquidtight / seal-tight flex",
+      "match": "liquid tight (?:flexible )?(?:metal(?:lic)? |non metallic )?(?:conduit|flex\\w*)|seal tight",
+      "why": "material premium"
+    },
+    {
+      "item": "Slab scanning / X-ray",
+      "match": "x ray (?:the |of )?(?:slab|concrete|floor|deck)|(?:slab|concrete|deck) (?:x ray|scan\\w*)|ground penetrating radar|\\bGPR\\b|scan\\w* (?:of )?(?:the )?(?:slab|concrete)",
+      "why": "pre-core scanning service"
+    },
+    {
+      "item": "Firestopping",
+      "match": "firestop\\w*|penetration seals?",
+      "why": "material, labor, inspection"
+    },
+    {
+      "item": "Pressure testing",
+      "match": "hydrostatic(?:ally)? test\\w*|pressure test\\w*",
+      "why": "testing labor"
+    },
+    {
+      "item": "Disinfection",
+      "match": "disinfect\\w* (?:of )?(?:the )?(?:new )?(?:potable|domestic|water|piping|lines?|systems?)|chlorinat(?:e|ion|ing)\\b",
+      "why": "potable water disinfection and testing"
+    },
+    {
+      "item": "Backflow preventers",
+      "match": "backflow (?:preventers?|prevention|test\\w*)",
+      "why": "devices and certified testing"
+    },
+    {
+      "item": "Heat tracing",
+      "match": "heat trac\\w*",
+      "why": "material and power"
+    },
+    {
+      "item": "Building automation / DDC",
+      "match": "BACnet|\\bDDC\\b|building automation|\\bBAS\\b",
+      "why": "controls subcontractor"
+    },
+    {
+      "item": "Generator load bank test",
+      "match": "load bank",
+      "why": "testing equipment rental"
+    },
+    {
+      "item": "Utility fees",
+      "match": "utility (?:company )?(?:connection )?(?:fees|charges)",
+      "why": "pass-through fees"
+    }
+  ],
+  "finishes": [
+    {
+      "item": "Mock-up",
+      "match": "mock(?: )?ups?",
+      "why": "mock-up material, labor, schedule"
+    },
+    {
+      "item": "Attic stock / extra material",
+      "match": "attic stock|extra (?:materials?|stock)|maintenance materials?|spare (?:tiles?|materials?)",
+      "why": "extra material quantity"
+    },
+    {
+      "item": "Slab moisture testing",
+      "match": "(?:moisture|relative humidity|\\bRH\\b|calcium chloride) (?:test\\w*|emission)",
+      "why": "testing before flooring"
+    },
+    {
+      "item": "Moisture mitigation",
+      "match": "moisture mitigation|vapou?r emission control|moisture barrier",
+      "why": "mitigation system cost"
+    },
+    {
+      "item": "Slip resistance",
+      "match": "slip resist\\w*|coefficient of friction|\\bDCOF\\b|\\bSCOF\\b",
+      "why": "product selection and testing"
+    },
+    {
+      "item": "VOC limits",
+      "match": "low VOC|VOC (?:content|limits?)",
+      "why": "restricts products"
+    },
+    {
+      "item": "Fire-rated finishes",
+      "match": "fire rated|fire rating|flame spread|class A (?:finish|rating)",
+      "why": "rated products and assemblies"
+    },
+    {
+      "item": "Acoustic requirements",
+      "match": "\\bSTC\\b|sound (?:transmission|attenuation)|acoustic\\w* (?:insulation|sealant|ceiling\\w*|panels?)",
+      "why": "acoustic materials and sealing"
+    },
+    {
+      "item": "Level 4/5 drywall finish",
+      "match": "level (?:4|5|four|five) finish|finish level (?:4|5)",
+      "why": "extra finishing labor"
+    },
+    {
+      "item": "Custom / TBD colors",
+      "match": "custom colou?rs?|colou?rs? (?:as|to be) selected|selected by (?:the )?architect",
+      "why": "selection uncertainty and premium"
+    },
+    {
+      "item": "Resinous / epoxy flooring",
+      "match": "(?:epoxy|resinous) (?:floor\\w*|coating)",
+      "why": "specialty flooring"
+    },
+    {
+      "item": "Terrazzo",
+      "match": "terrazzo",
+      "why": "specialty trade"
+    },
+    {
+      "item": "Heat-welded seams",
+      "match": "heat welded|(?:welded|seamless) (?:seams?|flooring|sheet)",
+      "why": "installation labor"
+    },
+    {
+      "item": "Certified installer",
+      "match": "(?:installer|applicator) (?:certification|qualifications|certified|approved)|certified (?:installer|applicator)",
+      "why": "approved-installer premium"
+    },
+    {
+      "item": "Manufacturer field representative",
+      "match": "manufacturer'?s? (?:field |technical )?representative|manufacturer'?s? (?:field )?inspection",
+      "why": "rep visits"
+    },
+    {
+      "item": "LEED / recycled content",
+      "match": "\\bLEED\\b|recycled content|regional materials|\\bEPDs?\\b",
+      "why": "product restrictions and documentation"
+    },
+    {
+      "item": "Floor leveling / prep",
+      "match": "self leveling|floor leveling|skim coat|floor preparation",
+      "why": "substrate preparation"
+    },
+    {
+      "item": "Paint coat count",
+      "match": "(?:three|3) (?:finish )?coats|primer (?:and|plus) (?:two|2)|(?:two|2) (?:finish|top) coats",
+      "why": "coat count drives labor"
+    }
+  ],
+  "universal": [
+    {
+      "item": "Special inspections",
+      "match": "special inspections?",
+      "why": "inspection coordination and fees"
+    },
+    {
+      "item": "Independent testing",
+      "match": "(?:independent|third party) (?:testing|inspection|laboratory)",
+      "why": "check who pays for testing"
+    },
+    {
+      "item": "Record / as-built drawings",
+      "match": "as built|record drawings?",
+      "why": "documentation cost"
+    },
+    {
+      "item": "Extended warranty",
+      "match": "extended warrant\\w*|(?:two|three|five|ten|\\d+) (?:\\(\\d+\\) )?years? warrant\\w*",
+      "why": "warranty premium"
+    },
+    {
+      "item": "Restricted working hours",
+      "match": "(?:working|work) hours (?:are|shall be|will be) (?:limited|restricted)|(?:limited|restricted) (?:working|work) hours|night work|weekend work|after hours work|off hours|work (?:shall|will) (?:be performed|occur|be done) (?:only )?between",
+      "why": "overtime / night-shift premium"
+    },
+    {
+      "item": "Phasing / occupied facility",
+      "match": "phased (?:construction|work)|phasing|occupied (?:building|facility|areas?)",
+      "why": "productivity loss, protection"
+    },
+    {
+      "item": "Security / badging",
+      "match": "security clearances?|background checks?|escorted at all times|(?:contractor|worker|employee|personnel)s? (?:shall|must) (?:obtain|wear|display) (?:an? )?(?:identification )?badges?|badging",
+      "why": "access time and admin"
+    },
+    {
+      "item": "Domestic preference (BABA)",
+      "match": "buy american|build america|\\bBABA\\b|domestic (?:preference|materials|products)",
+      "why": "restricts products, price premium"
+    },
+    {
+      "item": "Permits and fees",
+      "match": "(?:obtain|pay for) (?:all )?(?:necessary |required )?permits|permit fees",
+      "why": "permit costs"
+    },
+    {
+      "item": "Temporary facilities",
+      "match": "field office|job trailer|temporary facilities|temporary toilets?",
+      "why": "general conditions cost"
+    },
+    {
+      "item": "Temporary heat / winter protection",
+      "match": "temporary heat|winter protection|winter conditions",
+      "why": "protection cost"
+    },
+    {
+      "item": "Dewatering",
+      "match": "dewater\\w*",
+      "why": "pumps, permits, discharge"
+    },
+    {
+      "item": "Traffic control",
+      "match": "traffic control|flagg(?:er|ers|ing)",
+      "why": "traffic plan, flaggers, devices"
+    },
+    {
+      "item": "Stormwater / erosion control",
+      "match": "\\bSWPPP\\b|stormwater pollution|erosion control|best management practices",
+      "why": "compliance and BMPs"
+    },
+    {
+      "item": "Hazardous materials",
+      "match": "asbestos|lead based paint|hazardous materials?|abatement",
+      "why": "abatement subcontractor"
+    },
+    {
+      "item": "Disposal / hauling",
+      "match": "disposal fees|dump fees|haul\\w* off site|legally dispos\\w*",
+      "why": "haul and tipping fees"
+    },
+    {
+      "item": "Salvage to owner",
+      "match": "salvag\\w*|deliver(?:ed)? to the owner",
+      "why": "careful removal and handling"
+    }
+  ]
+}
