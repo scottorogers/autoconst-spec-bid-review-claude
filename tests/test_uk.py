@@ -53,7 +53,7 @@ def test_validity():
     assert bk("Tender validity period")["Key value"] == "90 days"
 
 def test_form_of_contract():
-    assert bk("Form of contract")["Key value"] == "JCT Design and Build Sub-Contract 2016"
+    assert bk("Form of contract / pricing basis")["Key value"] == "JCT Design and Build Sub-Contract 2016"
 
 def test_amendments_found():
     assert "Schedule of Amendments" in bk("Contract amendments")["Clause"]
@@ -111,8 +111,8 @@ if __name__ == "__main__":
         try:
             fn()
             print(f"PASS {name}")
-        except AssertionError as e:
+        except Exception as e:
             failed += 1
-            print(f"FAIL {name} {e}")
+            print(f"FAIL {name} {type(e).__name__} {e}")
     print(f"\n{len(tests) - failed} passed, {failed} failed")
     sys.exit(1 if failed else 0)

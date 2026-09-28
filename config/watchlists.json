@@ -566,7 +566,7 @@
     },
     {
       "item": "UPS / generator works",
-      "match": "\\bUPS\\b|uninterruptible power|standby generators?|\\bATS\\b|automatic transfer switch\\w*",
+      "match": "(?-i:\\bUPS\\b)|uninterruptible power|standby generators?|(?-i:\\bATS\\b)|automatic transfer switch\\w*",
       "why": "specialist interfaces and testing"
     }
   ],
@@ -578,7 +578,7 @@
     },
     {
       "item": "Competence cards",
-      "match": "\\bCSCS\\b|\\bECS\\b|\\bJIB\\b|\\bCPCS\\b|\\bIPAF\\b|\\bPASMA\\b|\\bSMSTS\\b|\\bSSSTS\\b",
+      "match": "\\bCSCS\\b|\\bECS\\b|\\bJIB\\b|\\bCPCS\\b|\\bIPAF\\b|\\bPASMA\\b|\\bSMSTS\\b|\\bSSSTS\\b|carded (?:labour|operatives|workforce)",
       "why": "every operative carded - check labour pool and cost"
     },
     {
@@ -628,7 +628,7 @@
     },
     {
       "item": "Waste management",
-      "match": "site waste management|\\bSWMP\\b|waste carrier|duty of care|segregated waste",
+      "match": "site waste management|\\bSWMP\\b|waste carrier|duty of care|segregated waste|diverted from landfill|SMARTWaste",
       "why": "skips, segregation and paperwork"
     },
     {
@@ -673,8 +673,28 @@
     },
     {
       "item": "Social value / apprentices",
-      "match": "social value|apprentices?(?:hips?)?",
+      "match": "social value|apprentices?(?:hips?)?|local employment|section 106|\\bs106\\b",
       "why": "reporting and resourcing commitments"
+    },
+    {
+      "item": "24-hour call-out",
+      "match": "24 ?(?:hour|hr)s? (?:call ?out|attendance|response|cover)|call ?out (?:facility|service)",
+      "why": "standby labour and on-call cost"
+    },
+    {
+      "item": "Client-branded PPE",
+      "match": "branded (?:PPE|clothing|workwear)|PPE (?:to be|shall be|must be) branded",
+      "why": "PPE supply cost"
+    },
+    {
+      "item": "Mandated software / platforms",
+      "match": "\\bAsta\\b|\\bRevit\\b|Navisworks|Conject|\\bAconex\\b|Priority ?1\\b|Fieldview|Procore|Viewpoint for Projects",
+      "why": "licences, hardware and training"
+    },
+    {
+      "item": "No site parking",
+      "match": "no (?:car )?parking|parking (?:is |will be )?not (?:available|provided|permitted)",
+      "why": "travel and parking cost"
     }
   ]
 }

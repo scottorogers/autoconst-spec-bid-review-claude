@@ -30,7 +30,7 @@ Also in UK mode:
 - **Values come from the matched sentence only.** If a value has to come from the line after a heading, the row drops to MEDIUM and the Notes column says so. A match that runs across two sentences is ignored.
 - **NBS section headers are recognised**, so a clause on the Y63 page is cited to Y63, not to the section before it.
 
-**Status:** UK mode is checked against a synthetic tender (`tests/fixtures/uk_tender_synthetic.txt`), not yet against a real UK tender. Check every row against the page until it has been run on real jobs.
+**Status:** UK mode is checked against a synthetic tender (`tests/fixtures/uk_tender_synthetic.txt`) and was hand-tuned against one real 39-page UK construction-management trade-contract scope of works (not included - client document). It has not yet been run on a full ITT with contract particulars. Check every row against the page.
 
 Every workbook now labels the page column **PDF page** (1 = first sheet of the PDF), not the printed page number.
 

@@ -5,7 +5,7 @@ Regression check: re-run bid_review.py on real specs and assert known-correct an
     py tests/regression.py            # all specs found on disk
     py tests/regression.py sdps div03 # only these
 
-These are the author's US specs, run with --region us. Spec PDFs are looked up in SPEC_DIR
+Entries run with --region us unless a fourth tuple item names the region (e.g. "uk"). Spec PDFs are looked up in SPEC_DIR
 (default: the folder above this repo). Missing PDFs are SKIPPED; if nothing ran at all the exit code
 is non-zero. Exit code 0 = at least one check ran and every check that ran passed.
 Every expected value below was verified by hand against the source PDF page.
@@ -137,14 +137,15 @@ def main():
             print(f"\n=== extractor: {exe} ({tag})")
             env = dict(os.environ, PDFTOTEXT=exe, PYTHONIOENCODING="utf-8")
             for name in wanted:
-                pdf, trade, check = SPECS[name]
+                pdf, trade, check, *region = SPECS[name]
+                region = region[0] if region else "us"
                 src = SPEC_DIR / pdf
                 if not src.exists():
                     print(f"SKIP {name}: {src} not found")
                     skipped += 1
                     continue
                 out = Path(tmp) / f"{name}-{abs(hash(exe)) % 10**6}.xlsx"
-                r = subprocess.run([sys.executable, str(ENGINE), str(src), "--region", "us", "--trade", trade, "--out", str(out)],
+                r = subprocess.run([sys.executable, str(ENGINE), str(src), "--region", region, "--trade", trade, "--out", str(out)],
                                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
                 if r.returncode != 0:
                     print(f"FAIL {name}: engine crashed\n{r.stderr[-800:]}")

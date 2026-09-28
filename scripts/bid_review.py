@@ -91,12 +91,15 @@ HDR_PATTERNS_US = HDR_PATTERNS
 HDR_PATTERNS_UK = HDR_PATTERNS_US + [
     ("verbatim", re.compile(r"^[ \t]*(?:WORK[ \t]+)?SECTION[ \t]+([A-Z]\d{2})\b[ \t]*[-–—:]?[ \t]*([A-Za-z][A-Za-z0-9 ,.&/()'\-]{2,60})?[ \t]*$", re.M)),
     ("verbatim", re.compile(r"^[ \t]*([A-Z]\d{2})[ \t]+[-–—:]?[ \t]*([A-Z][A-Z0-9 ,.&/()'\-]{2,60})[ \t]*$", re.M)),
+    ("verbatim", re.compile(r"^[ \t]*(\d{1,2}\.)[ \t]+([A-Z][A-Z &/,'’\-]{3,60}?)[ \t]*$", re.M)),   # "1. SCOPE OF WORKS"
+    ("verbatim", re.compile(r"^[ \t]*(Section[ \t]+\d{1,2})[ \t]*[-–—:][ \t]*([A-Z][A-Za-z0-9 ,.&/()'’\-]{2,60}?)[ \t]*$", re.M)),
     ("verbatim", re.compile(r"^[ \t]*((?:Ss|Pr|EF|PM|Ac)_\d{2}(?:_\d{2}){1,4})\b[ \t]*[-–—:]?[ \t]*([A-Za-z][A-Za-z0-9 ,.&/()'\-]{2,60})?[ \t]*$", re.M)),
 ]
 ARTICLE = re.compile(r"^[ \t]*(\d\.\d{1,2})[ \t]+([A-Z][A-Z0-9 ,&/()'\-]{2,50})[ \t]*$", re.M)
 ARTICLES_US = [ARTICLE]
 # NBS clause numbers: "110 SCOPE OF WORK", "310 CABLE LADDER"
-ARTICLES_UK = [ARTICLE, re.compile(r"^[ \t]*(\d{3})[ \t]+([A-Z][A-Z0-9 ,&/()'\-]{2,50})[ \t]*$", re.M)]
+ARTICLES_UK = [re.compile(r"^[ \t]*(\d{1,2}\.\d{1,2})[ \t]+([A-Z][A-Za-z0-9 ,:&/()'’\-“”\"]{2,60}?)[ \t]*$", re.M),   # 1.5 Testing and Commissioning
+               re.compile(r"^[ \t]*(\d{3})[ \t]+([A-Z][A-Z0-9 ,&/()'\-]{2,50})[ \t]*$", re.M)]
 ARTICLES = ARTICLES_US
 INDEX_EXTRA = None   # UK: NBS contents pages list many "Y61 ..." lines
 STRICT = False       # UK: fixed sentence splitter + values only from the matched sentence (see configure())
@@ -147,9 +150,12 @@ class Doc:
         self.headers = []
         self.carry_in = []
         carry = ""
-        for t in self.pages:
+        for pi_, t in enumerate(self.pages):
             self.carry_in.append(carry)
             hs = []
+            if STRICT and pi_ in self.index_pages:   # a contents page lists every heading - don't carry them
+                self.headers.append(hs)
+                continue
             for kind, rx in HDR_PATTERNS:
                 for m in rx.finditer(t):
                     num = m.group(1)
@@ -206,9 +212,10 @@ class Doc:
             # a full stop at the end of a line followed by an un-indented line is still a sentence end
             # (the US splitter required indentation, so left-aligned paragraphs ran together and a
             # value from one clause could be reported against another)
-            for m in re.finditer(r"(?<=[a-z0-9)\]\"'%])\.(?:[ \t]+|[ \t]*\n[ \t]*)(?=[A-Z(])", t):
+            # (Word exports bullets as private-use Symbol-font characters such as U+F0B7)
+            for m in re.finditer(r"(?<=[a-z0-9)\]\"'%])\.(?:[ \t]+|[ \t]*\n[ \t]*)(?=(?:[•\uf0a7\uf0b7\uf0d8\uf076\uf0fc][ \t]+)?[A-Z(])", t):
                 cuts.add(m.end())
-            for m in re.finditer(r"\n[ \t]*(?=\d{3}[ \t]+[A-Z]{2}|[-•–][ \t]+[A-Z])", t):   # NBS clauses, bullets
+            for m in re.finditer(r"\n[ \t]*(?=\d{3}[ \t]+[A-Z]{2}|[-•–\uf0a7\uf0b7\uf0d8\uf076\uf0fc][ \t]+[A-Z])", t):   # NBS clauses, bullets
                 cuts.add(m.end())
             for off, kind, label in self.headers[pi]:                          # headings stand alone
                 cuts.add(off)
@@ -305,6 +312,7 @@ KV_UK = [
     re.compile(r"\b\d{1,2}:\d{2}(?:\s*(?:hrs|hours|noon|midday|[ap]\.?m\.?))?|\b\d{1,2}\.\d{2}\s*(?:hrs|hours|noon|midday|[ap]\.?m\.?)|\b12\s*noon\b|\bmidday\b|\b\d{1,2}\s*[ap]\.m\.", re.I),
     re.compile(r"[£$€]\s?[\d,]+(?:\.\d{2})?(?:\s*(?:million|m|k)\b)?(?:\s*(?:per|for\s+each|each|/)\s*(?:calendar\s+|working\s+)?(?:day|week|occurrence|month|claim|event)(?:\s+or\s+part\s+(?:thereof|of\s+a\s+week))?)?", re.I),
     re.compile(r"\d{1,3}(?:\.\d+)?\s*(?:%|percent|per\s+cent)", re.I),
+    re.compile(r"\b(?:\d{1,2}|six|twelve|eighteen|twenty-four)[ \-]months?\b", re.I),
     re.compile(r"(?:\b[a-z\-]{3,20}\s)?\(\d{1,4}\)\s+(?:consecutive\s+)?(?:calendar\s+|working\s+|business\s+)?(?:days|weeks|months)|\b\d{1,4}\s+(?:consecutive\s+)?(?:calendar\s+|working\s+|business\s+)?(?:days|weeks|months)\b", re.I),
     # form of contract - kept case-sensitive so "option b" in prose is not read as NEC Option B
     re.compile(r"\bJCT\b[^.;\n]{0,60}?(?:Sub-?[Cc]ontract|Contract)(?:\s+20\d{2}|\s+\(\d{4}\))?|\bNEC\s?[34]?\s+(?:Engineering\s+(?:and|&)\s+Construction|Professional\s+Services?|Term\s+Service|Supply)\s+(?:Sub)?[Cc]ontract|\bNEC\s?[34]\b|\bFIDIC\b|\bOption\s+[A-F]\b|\bOption\s+X\d{1,2}\b"),
@@ -363,7 +371,7 @@ BID_KILLERS_UK = OrderedDict([
     ("Mandatory site visit / briefing", [r"(?:mid|pre)-?\s?tender\s+(?:site\s+)?(?:visit|meeting|briefing|interview)", r"site\s+visits?\s+(?:is\s+|are\s+|will\s+be\s+)?(?:mandatory|compulsory|required|arranged|scheduled)", r"(?:mandatory|compulsory)\s+(?:site\s+)?(?:visit|briefing|meeting)"]),
     ("Tender queries / clarifications deadline", [r"\b(?:tender\s+)?(?:queries|questions|clarifications?|enquiries|inquiries)\b[\s\S]{0,100}?(?:deadline|no\s+later\s+than|received\s+by|within\s+\(?\w+\)?\s*(?:\(\d+\)\s*)?(?:working\s+|calendar\s+|business\s+)?days|prior\s+to\s+(?:the\s+)?tender)", r"deadline\s+for\s+(?:queries|questions|clarifications|enquiries)"]),
     ("Tender validity period", [r"tenders?\s+(?:shall|must|will|should)\s+(?:remain|be)\s+(?:valid|open)[\s\S]{0,80}?(?:days|weeks|months)", r"(?:valid|open)\s+for\s+acceptance[\s\S]{0,40}?(?:days|weeks|months)", r"tender\s+validity", r"acceptance\s+period"]),
-    ("Form of contract", [r"\bJCT\b[\s\S]{0,80}?(?:Contract|Sub-?contract|20\d{2})", r"\bNEC\s?[34]?\b[\s\S]{0,60}?(?:Contract|Subcontract|Option)", r"\bFIDIC\b", r"(?:form|conditions)\s+of\s+(?:contract|sub-?contract)\s+(?:shall\s+be|will\s+be|is)"]),
+    ("Form of contract / pricing basis", [r"lump\s+sum\s+fixed\s+price|fixed\s+price\s+lump\s+sum|re-?measur\w+\s+(?:basis|contract)|(?:let|tendered|priced)\s+on\s+a\s+[^.\n]{0,30}?basis", r"\bJCT\b[\s\S]{0,80}?(?:Contract|Sub-?contract|20\d{2})", r"\bNEC\s?[34]?\b[\s\S]{0,60}?(?:Contract|Subcontract|Option)", r"\bFIDIC\b", r"(?:form|conditions)\s+of\s+(?:contract|sub-?contract)\s+(?:shall\s+be|will\s+be|is)"]),
     ("Contract amendments", [r"schedule\s+of\s+amendments", r"amendments\s+to\s+the\s+(?:JCT|NEC|contract|sub-?contract|conditions|standard\s+form)", r"bespoke\s+amendments", r"\bZ\s?clauses?\b|Option\s+Z\b", r"additional\s+conditions\s+of\s+contract"]),
     ("LADs / delay damages", [r"liquidated\s+(?:and\s+ascertained\s+)?damages", r"\bLADs?\b", r"delay\s+damages"]),
     ("Performance bond", [r"performance\s+bonds?", r"(?:contract|construction)\s+bond\b"]),
@@ -371,7 +379,9 @@ BID_KILLERS_UK = OrderedDict([
     ("Collateral warranties / third party rights", [r"collateral\s+warrant(?:y|ies)", r"third\s+party\s+rights"]),
     ("Retention", [r"retention\s+(?:of|shall|will|percentage|money|monies|bond|is|at)", r"\d{1,2}(?:\.\d{1,2})?\s*%\s+retention", r"retention\s+(?:\w+\s+){0,3}\d{1,2}(?:\.\d{1,2})?\s*%"]),
     ("Payment terms", [r"payment\s+(?:terms|cycle)", r"final\s+date\s+for\s+payment", r"pay\s?less\s+notice", r"interim\s+(?:valuations?|payments?|applications?)[\s\S]{0,80}?(?:monthly|days)"]),
-    ("Contract period / completion", [r"(?:contract|construction)\s+(?:period|duration)\s+(?:of|is|shall\s+be|will\s+be)", r"(?:date\s+for\s+)?(?:practical|sectional)\s+completion[\s\S]{0,100}?(?:\d{1,4}\s+weeks|\d{1,2}(?:st|nd|rd|th)?\s+" + MONTHS + r")", r"completion\s+date", r"\(?\d{1,3}\)?\s+weeks[\s\S]{0,80}?(?:complete|completion)", r"sectional\s+completion"]),
+    # only sentences that SET the period - "3 months prior to Sectional Completion" is a deadline for something else
+    ("Contract period / completion", [r"(?:contract|construction)\s+(?:period|duration)\s+(?:of|is|shall\s+be|will\s+be)", r"date\s+for\s+(?:practical|sectional)\s+completion\s+(?:is|shall\s+be|will\s+be)", r"(?:practical|sectional)\s+completion\s+(?:date\s+)?(?:is|shall\s+be|will\s+be)\s+(?!\w+\s+prior)[^.\n]{0,40}?(?:\d{1,4}\s+(?:weeks|months)|\d{1,2}(?:st|nd|rd|th)?\s+" + MONTHS + r")", r"completion\s+date\s+(?:is|shall\s+be|will\s+be|of)", r"(?:complete|completed)\s+(?:the\s+works\s+)?within\s+\(?\d{1,3}\)?\s+weeks"]),
+    ("Defects period / warranty", [r"defects?\s+(?:liability|rectification|notification)\s+period", r"rectification\s+period", r"\d{1,2}\s+months?\s+warranty|warranty\s+period\s+(?:of|is|shall)"]),
     ("Insurance requirement", [r"(?:public|employer'?s|products)\s+liability", r"professional\s+indemnity", r"contractors?'?\s+all\s+risks?", r"joint\s+names", r"insurance\s+(?:cover|requirements?|levels?|certificates?)"]),
     ("Design responsibility (CDP)", [r"contractor'?s\s+designed\s+portion", r"\bCDP\b", r"(?:sub-?)?contractor\s+(?:shall\s+be|is)\s+responsible\s+for\s+(?:the\s+)?(?:detailed\s+)?design", r"performance\s+specification", r"design\s+(?:and|&)\s+build"]),
     ("CDM duties", [r"\bCDM\b", r"principal\s+contractor", r"construction\s+phase\s+plan", r"pre-?construction\s+information"]),
@@ -380,12 +390,12 @@ BID_KILLERS_UK = OrderedDict([
     ("Tender addenda acknowledgement", [r"tender\s+(?:addend(?:um|a)|bulletins?|clarification\s+notices?)", r"addend(?:um|a)[\s\S]{0,80}(?:acknowledg|form\s+of\s+tender)", r"acknowledge?\w*\s+(?:receipt\s+of\s+)?(?:all\s+)?(?:tender\s+)?(?:addend|bulletin)"]),
 ])
 BK_KIND_UK = {"Tender return date / time": "due", "Tender queries / clarifications deadline": "queries",
-              "Tender validity period": "validity", "Form of contract": "form", "LADs / delay damages": "ld",
+              "Tender validity period": "validity", "Form of contract / pricing basis": "form", "LADs / delay damages": "ld",
               "Performance bond": "bond", "Parent company guarantee": "bond", "Retention": "pct",
               "Insurance requirement": "money", "Accreditations / competence cards": "accred",
-              "Contract period / completion": "time", "Design responsibility (CDP)": "cdp"}
+              "Contract period / completion": "time", "Design responsibility (CDP)": "cdp", "Defects period / warranty": "time"}
 FORM_RE_US = FORM_RE
-FORM_RE_UK = re.compile(r"\b(form\s+of\s+tender|tender\s+(?:return|submission)\s+(?:documents?|schedule|checklist)|pricing\s+(?:schedule|document)|activity\s+schedule|contract\s+sum\s+analysis|bills?\s+of\s+quantities|bid\s+form|bid\s+schedule)\b", re.I)
+FORM_RE_UK = re.compile(r"\b(with\s+the\s+tender\s+return|at\s+(?:bid|tender)\s+stage|in\s+(?:his|their|its|the)\s+tender\b|form\s+of\s+tender|tender\s+(?:return|submission)\s+(?:documents?|schedule|checklist)|pricing\s+(?:schedule|document)|activity\s+schedule|contract\s+sum\s+analysis|bills?\s+of\s+quantities|bid\s+form|bid\s+schedule)\b", re.I)
 FORMS_LABEL = "Required bid forms / exhibits"
 
 def hit_score(sentence, label):
@@ -413,7 +423,7 @@ def hit_score(sentence, label):
         if re.search(r"\b\d{1,2}(?:st|nd|rd|th)?\s+" + MONTHS, sentence): s += 2
         if re.search(r"\b\d+\s+(?:weeks|months)\b", sentence, re.I): s += 2
         if kind == "validity" and re.search(r"\d+\)?\s+(?:days|weeks|months)", sentence, re.I): s += 3
-        if kind == "form" and re.search(r"\bJCT\b|\bNEC\s?[34]?\b|\bFIDIC\b", sentence): s += 3
+        if kind == "form" and re.search(r"\bJCT\b|\bNEC\s?[34]?\b|\bFIDIC\b|lump\s+sum|fixed\s+price", sentence): s += 3
         if kind == "pct" and re.search(r"\d\s*%|per\s*cent", sentence, re.I): s += 3
         if kind == "cdp" and re.search(r"designed\s+portion|\bCDP\b|responsible\s+for\s+(?:the\s+)?(?:detailed\s+)?design", sentence, re.I): s += 3
         if kind == "accred": s += 2 * len(re.findall(r"\b(?:CHAS|SSIP|Constructionline|SafeContractor|NICEIC|NAPIT|CSCS|ECS|JIB|ISO\s?\d{4,5})\b", sentence))
@@ -532,19 +542,26 @@ def pass_bid_killers(docs):
     else:
         hit = None
         forms = r"(?:bid\s+form|proposal\s+form|bid\s+schedule|bidder'?s\s+proposal" + (
-            r"|form\s+of\s+tender|pricing\s+(?:schedule|document)|activity\s+schedule|contract\s+sum\s+analysis|bills?\s+of\s+quantities|tender\s+(?:return|submission)\s+(?:documents?|schedule|checklist)" if STRICT else "") + ")"
-        verbs = r"(?:submit|complete|fill(?:ed)?\s+(?:in|out)|enclose|attach|sign|return)" if STRICT else r"(?:submit|complete|fill(?:ed)?\s+(?:in|out)|enclose|attach|sign)"
+            r"|with\s+the\s+tender\s+return|at\s+(?:bid|tender)\s+stage|in\s+(?:his|their|its|the)\s+tender\b|form\s+of\s+tender|pricing\s+(?:schedule|document)|activity\s+schedule|contract\s+sum\s+analysis|bills?\s+of\s+quantities|tender\s+(?:return|submission)\s+(?:documents?|schedule|checklist)" if STRICT else "") + ")"
+        verbs = r"(?:submit|complete|fill(?:ed)?\s+(?:in|out)|enclose|attach|sign|return|issue|provide|supply|nominate|include)" if STRICT else r"(?:submit|complete|fill(?:ed)?\s+(?:in|out)|enclose|attach|sign)"
+        more = []
         for d_, pi_, m_ in iter_matches(docs, FORM_RE):
             sent_ = d_.sentence_at(pi_, m_.start())[2]
             if re.search(verbs + r"\w*[^.]{0,60}" + forms + "|" + forms + r"[^.]{0,60}" + verbs, sent_, re.I) and not re.search(r"payment|compensation", sent_, re.I):
-                hit = (d_, pi_, m_)
-                break
+                if hit is None:
+                    hit = (d_, pi_, m_)
+                    if not STRICT:
+                        break
+                elif (d_.name, pi_) != (hit[0].name, hit[1]):
+                    lbl = f"{d_.name} p{pi_ + 1}" if len(docs) > 1 else f"p{pi_ + 1}"
+                    if lbl not in more:
+                        more.append(lbl)
         if hit:
             d, pi, m = hit
             rows.append({"Bid-killer": FORMS_LABEL, "Key value": "",
                          "Clause": shorten(d.sentence_at(pi, m.start())[2], m.group(0)),
-                         **cite(d, pi, m.start()), "Also on pages": "", "Confidence": "HIGH",
-                         "Notes": "list and complete every required form"})
+                         **cite(d, pi, m.start()), "Also on pages": ", ".join(more), "Confidence": "HIGH",
+                         "Notes": "list and complete every required form" + (" - tender-stage returns are also asked for on the other pages listed" if more else "")})
         else:
             rows.append({"Bid-killer": FORMS_LABEL, "Key value": "", "Clause": "NOT FOUND",
                          "Document": "", "Section": "", "Page": "", "Also on pages": "", "Confidence": "-",
@@ -566,19 +583,22 @@ HIDDEN = [
 ]
 HIDDEN_RX = [(c, re.compile(p, re.I), w) for c, p, w in HIDDEN]
 HIDDEN_RX_US = HIDDEN_RX
-_UK_PAYER = r"(?:employer|client|owner|contractor|main\s+contractor|purchaser|authority|council|trust|end\s+user|tenant|landlord)"
+_UK_TC = r"(?:(?:trade|sub-?|works|package|specialist)\s*)?contractor"
+_UK_PAYER = r"(?:employer|client|owner|contractor|main\s+contractor|construction\s+manager|purchaser|authority|council|trust|end\s+user|tenant|landlord)"
 HIDDEN_UK = [
     ("No separate payment", r"no\s+separate\s+(?:payment|measurement|compensation|pay\s+item|item)", "carry this cost inside another item"),
     ("Incidental work", r"(?:considered|deemed)\s+(?:as\s+)?incidental|incidental\s+to\s+(?:the\s+)?(?:works?|contract|item|other)", "unpaid work - carry it in the related item"),
-    ("Included in Contract Sum / rates", r"(?:included|deemed\s+(?:to\s+be\s+)?included|allowed\s+for)\s+(?:with)?in\s+(?:the\s+|your\s+)?(?:(?:sub-?)?contract\s+sum|tender\s+(?:sum|price|figure)|contract\s+price|lump\s+sum|(?:unit\s+)?rates|prices|preliminaries)", "price it into your rates / prelims"),
-    ("Deemed to have allowed", r"deemed\s+to\s+have\s+(?:allowed|included|priced|made\s+(?:due\s+)?allowance|visited|inspected|satisfied)", "you carry anything missed - price it or qualify it"),
+    ("Included in Contract Sum / rates", r"(?:included|deemed\s+(?:to\s+be\s+)?included|allowed\s+for)\s+(?:with)?in\s+(?:the\s+|your\s+|his\s+|their\s+)?(?:(?:(?:trade|sub-?)\s*)?contract\s+sum|tender\s+(?:sum|price|figure)?|bid|offer|contract\s+price|lump\s+sum|(?:unit\s+)?rates|prices|preliminaries)|(?:contract|tender)\s+sum\s+(?:will|shall)\s+be\s+deemed\s+to\s+include", "price it into your rates / prelims"),
+    ("Deemed to have allowed", r"deemed\s+to\s+have\s+(?:allowed|included|priced|made\s+(?:due\s+)?allowance|visited|inspected|satisfied)|(?:will|shall)\s+be\s+deemed\s+to\s+(?:be\s+)?included?\b", "you carry anything missed - price it or qualify it"),
+    ("Unshown scope is yours", r"not\s+(?:currently\s+)?shown\s+(?:on|in)\s+(?:the\s+)?[^.]{0,60}?(?:drawings?|tender\s+information)|(?:whatever|irrespective\s+of)\s+(?:size|type)", "scope beyond the drawings - quantify it, or qualify the tender"),
+    ("Variations / changes restricted", r"no\s+(?:consideration|reimbursement)\s+(?:will|shall)\s+be\s+made[^.]{0,60}variations?|(?:will\s+)?not\s+constitute\s+a\s+variation|no\s+adjustment\s+to\s+the\s+[^.]{0,30}?(?:contract\s+sum|price)|no\s+additional\s+(?:costs?|time|payment)\s+(?:or\s+(?:time|costs?)\s+)?(?:will|shall)\s+be\s+(?:considered|allowed|paid|granted)", "change risk sits with you - price it or qualify it"),
     ("Allow for", r"\b(?:sub-?)?contractors?\s+(?:shall|must|is\s+to|are\s+to|should)\s+(?:include\s+and\s+)?allow\s+for|\btenderers?\s+(?:shall|must|should|are\s+to)\s+allow\s+for|\ballow\s+for\s+all\b", "named cost with no pay item - price it"),
-    ("At Contractor's expense", r"at\s+(?:the\s+)?(?:sub-?)?contractor'?s\s+(?:own\s+)?(?:sole\s+)?(?:cost|expense|risk\s+and\s+(?:cost|expense))", "cost falls on you - price it"),
+    ("At Contractor's expense", r"at\s+(?:the\s+)?" + _UK_TC + r"[’']?s?[’']?\s+(?:own\s+)?(?:sole\s+)?(?:cost|expense|risk\s+and\s+(?:cost|expense))|\b(?:solely|entirely)\s+at\s+(?:the\s+)?" + _UK_TC + r"[’']?s?[’']?\s+(?:own\s+)?(?:cost|expense|risk)|entirely\s+at\s+their\s+risk|(?:will|shall)\s+be\s+(?:solely|entirely)\s+provided\s+by\s+the\s+" + _UK_TC + r"|will\s+be\s+the\s+" + _UK_TC + r"[’']?s?[’']?\s+responsibility", "cost falls on you - price it"),
     ("No cost to Employer / Client", r"at\s+no\s+(?:additional\s+|extra\s+)?(?:cost|charge|expense)\s+to\s+the\s+" + _UK_PAYER, "cost falls on you - price it"),
-    ("No additional payment", r"without\s+(?:additional|extra)\s+(?:compensation|cost|charge|payment)|no\s+(?:additional|extra)\s+(?:compensation|payment|cost|charge)\s+(?:will|shall)\s+be|\bno\s+extra\s+over\b", "cost falls on you - price it"),
-    ("Contractor bears cost", r"(?:shall\s+)?bear\s+(?:the|all)\s+(?:cost|costs|expense)|(?:cost|costs|expense)s?\s+(?:of|for)\s+[^.]{0,60}?(?:shall\s+be\s+)?(?:borne|paid)\s+by\s+the\s+(?:sub-?)?contractor", "cost falls on you - price it"),
+    ("No additional payment", r"without\s+(?:additional|extra)\s+(?:compensation|cost|charge|payment)|no\s+(?:additional|extra)\s+(?:compensation|payment|cost|charge)\s+(?:will|shall)\s+be|\bno\s+extra\s+over\b|at\s+no\s+(?:extra|additional)\s+(?:cost|charge)\b|(?:repair|replac|rectif|remed|re-?test|attend|re-?offer)\w*[^.]{0,60}free\s+of\s+charge", "cost falls on you - price it"),
+    ("Contractor bears cost", r"(?:shall\s+)?bear\s+(?:the|all)\s+(?:cost|costs|expense)|(?:cost|costs|expense)s?\s+(?:of|for)\s+[^.]{0,60}?(?:shall\s+be\s+)?(?:borne|paid)\s+by\s+the\s+" + _UK_TC + r"|" + _UK_TC + r"\s+(?:will|shall)\s+pay\s+(?:any|all)\s+costs|(?:shall|will)\s+be\s+chargeable\s+to\s+the\s+" + _UK_TC, "cost falls on you - price it"),
     ("Making good", r"\bmak(?:e|ing)\s+good\b", "making-good labour and materials - carry it"),
-    ("Contra charges", r"contra[- ]?charge\w*|(?:costs?|expenses?)\s+(?:so\s+incurred\s+)?(?:will|shall|may)\s+be\s+(?:recovered|deducted|charged\s+back|set\s+off)", "deduction risk - price the obligation"),
+    ("Contra charges", r"contra[- ]?charge\w*|employ\s+others\s+to\s+do\s+so\s+and\s+charge|(?:costs?|expenses?)\s+(?:so\s+incurred\s+)?(?:will|shall|may)\s+be\s+(?:recovered|deducted|charged\s+back|set\s+off)", "deduction risk - price the obligation"),
     ("Retesting at Contractor's cost", r"(?:retest(?:ing|s)?|re-test(?:ing|s)?|additional\s+tests?(?:ing)?)[^.]{0,100}(?:contractor|expense|cost)", "carry an allowance for failed-test retesting"),
 ]
 HIDDEN_RX_UK = [(c, re.compile(p, re.I), w) for c, p, w in HIDDEN_UK]
@@ -621,7 +641,7 @@ OR_EQUAL_UK = re.compile(r"or\s+(?:an?\s+)?(?:approved\s+)?(?:equal|equivalent)|
 NO_SUB_UK = re.compile(NO_SUB_US.pattern + r"|substitutions?\s*:?\s+(?:is\s+|are\s+)?not\s+(?:permitted|accepted|allowed)|no\s+(?:alternatives?|equivalents?)\s+(?:will|shall)\s+be|(?:only|solely)\s+(?:the\s+)?(?:following|named)\s+(?:manufacturer|product)", re.I)
 GLOBAL_OR_EQUAL_UK = re.compile(GLOBAL_OR_EQUAL_US.pattern + r"|(?:products?|items?|materials?)\s+(?:of\s+)?(?:an?\s+)?equivalent\s+(?:quality|standard|performance)[\s\S]{0,80}?(?:may|will)\s+be\s+(?:proposed|accepted|submitted|considered)|(?:where|if)\s+(?:products?|items?)\s+(?:are\s+)?(?:specified|named)\s+by\s+(?:proprietary|trade|manufacturer'?s?)\s+names?[\s\S]{0,120}?equivalent", re.I)
 # UK: "Unistrut or approved equivalent" / "Legrand or similar approved"
-NAMED_OR_EQUIV = re.compile(r"([A-Z][\w®™&.\-]*(?:[ \t]+[A-Z0-9][\w®™&.\-]*){0,3})[ \t]*(?:\([^)\n]{0,30}\)[ \t]*)?,?[ \t]+(?:or|/)[ \t]+(?:an?[ \t]+)?(?:approved[ \t]+)?(?:equivalent|equal|similar)\b")
+NAMED_OR_EQUIV = re.compile(r"([A-Z][\w®™&.\-]*(?:[ \t]+[A-Z0-9][\w®™&.\-]*){0,3})[ \t]*(?:\((?!or\b)[^)\n]{0,30}\)[ \t]*)?,?[ \t]+\(?(?:or|/)[ \t]+(?:an?[ \t]+)?(?:approved[ \t]+)?(?:equivalent|equal|similar)\b")
 # UK NBS product clauses: "Manufacturer: Unistrut Ltd" ... "Product reference: P1000"
 NBS_MFR = re.compile(r"^[ \t]*[-•–]?[ \t]*(?:Recommended[ \t]+)?Manufacturer[ \t]*:[ \t]*(\S[^\n]{1,80})$", re.M | re.I)
 NBS_MFR_OPEN = re.compile(r"^(?:Submit|Contractor'?s?\s+choice|To\s+be|Selected|Not\s+applicable|As\s|Any\b|TBC|TBA|N/?A\b|See\b|Refer)", re.I)
@@ -774,12 +794,14 @@ SUB_TYPES_UK_EXTRA = {
     "O&M / closeout": r"|health\s+and\s+safety\s+file|handover\s+(?:documents?|information|pack)",
 }
 SUB_TYPE_RX_UK = [(n, re.compile(p + SUB_TYPES_UK_EXTRA.get(n, ""), re.I)) for n, p in SUB_TYPES]
+SUBMIT_VERB_UK = re.compile(r"\bsubmi(?:t|ts|tted|tting|ssions?)\b|\b(?:furnish|issue[ds]?|provide[ds]?|produce[ds]?)\b[^.]{0,80}\b(?:for\s+(?:approval|review|comment|agreement)|to\s+the\s+(?:construction\s+manager|contract\s+administrator|project\s+manager|employer|client|engineer|architect|design\s+team))|\bsubmittals?\b\s*:", re.I)
 SUBMIT_VERB = re.compile(r"\bsubmit(?:s|ted|ting)?\b|\bfurnish\b[^.]{0,60}\bfor\s+(?:approval|review)|\bsubmittals?\b\s*:", re.I)
-SUB_EXCLUDE_UK_EXTRA = re.compile(r"\b(?:submitting\s+(?:the\s+|their\s+|its\s+)?tenders?|with\s+(?:the|their|its|your)\s+tender|as\s+part\s+of\s+(?:the|their|its|your)\s+tender|tender\s+(?:return|submission)|technical\s+queries|\bTQs?\b|compensation\s+events?|early\s+warnings?|payment\s+applications?)\b", re.I)
+SUB_EXCLUDE_UK_EXTRA = re.compile(r"\b(?:submitting\s+(?:the\s+|their\s+|its\s+)?tenders?|with\s+(?:the|their|its|your)\s+tender|as\s+part\s+of\s+(?:the|their|its|your)\s+tender|tender\s+(?:return|submission)|technical\s+queries|\bTQs?\b|compensation\s+events?|early\s+warnings?|payment\s+applications?|interim\s+applications?|applications?\s+for\s+payment|valuations?)\b", re.I)
 SUB_EXCLUDE = re.compile(r"\b(?:submitting\s+bids?|bidder'?s?\s+(?:bond|guarant\w*)|in\s+lieu\s+of\s+depositing|claims?|arbitration|disputes?|grievances?|protests?|invoices?|applications?\s+for\s+payment|pay(?:ment)?\s+requests?|requests?\s+for\s+(?:additional|payment|extension|time)|written\s+notice|notice\s+(?:of|to)|as\s+part\s+of\s+the\s+bid|with\s+(?:the|their|its|his|her)\s+bid|bid\s+proceedings|subcontract(?:ing)?\s+(?:request|shall)|scheduling\s+request|rfi'?s?)\b", re.I)
 SUB_NOISE = re.compile(r"\bthe\s+submitted\b|\bdiscuss\w*|^(?:[A-Z]\.\s+)?(?:submittal\s+procedures|submittals?\s+shall\s+(?:be\s+in\s+accordance\s+with|conform\s+to|comply\s+with))\s*:?\s*(?:the\s+(?:requirements|provisions)\s+of\s+)?section\s+[\d ]+[^.]{0,60}\.?$", re.I)
 SAMPLING_NOT_SUBMITTAL = re.compile(r"take\s+samples|samples?\s+(?:will|shall)\s+be\s+(?:taken|secured|collected|obtained|tested)|sampling|stormwater\s+samples?|discharge\s+samples?|test\s+cylinders?|samples?\s+for\s+(?:slump|air|testing|tests)|obtaining\s+samples|collect\w*\s+samples", re.I)
 TIMING = re.compile(r"within\s+\(?\w+\)?\s*(?:\(\d+\)\s*)?(?:calendar\s+|working\s+|business\s+)?days?[^.;,]{0,50}|(?:at\s+least|minimum\s+of|not\s+less\s+than|no\s+later\s+than)\s+\(?\w+\)?\s*(?:\(\d+\)\s*)?(?:calendar\s+|working\s+|business\s+)?(?:days?|weeks?)\s+(?:prior|before|in\s+advance|after)[^.;,]{0,40}|prior\s+to\s+(?:the\s+)?(?:start|beginning|commencement|fabrication|installation|placement|ordering|delivery|shipment|pouring|construction|work)[^.;,]{0,40}|before\s+(?:start|beginning|commencing|fabrication|installation|placement|ordering|delivery|shipment|pouring)[^.;,]{0,40}|\bweekly\b|\bmonthly\b|\bdaily\b|at\s+(?:the\s+)?pre-?construction\s+(?:meeting|conference)", re.I)
+TIMING_UK = re.compile(r"\b(?:\d{1,3}|one|two|three|four|five|six|seven|eight|ten|twelve)\s+(?:working\s+|calendar\s+)?(?:days?|weeks?|months?)[’']?\s+(?:prior\s+to|before|after|in\s+advance\s+of|of\s+(?:the\s+)?(?:effective\s+start|appointment|commencement))[^.;,]{0,50}|within\s+(?:\d{1,3}|one|two|three|four|six|eight)\s+(?:working\s+)?(?:days?|weeks?|months?)\s+of\s+[^.;,]{0,40}|by\s+no\s+later\s+than\s+\w+day\s+each\s+week|\beach\s+(?:week|month)\b|\bweekly\b|\bmonthly\b", re.I)
 SUB_LIST_HDR = re.compile(r"(?:list|schedule|summary)\s+of\s+(?:required\s+)?submittals", re.I)
 SUB_LIST_ROW = re.compile(r"^[ \t]*(\d{1,2})\.[ \t]+(\S.{2,40}?)(?:[ \t]{2,}(\S.{2,50}?))?(?:[ \t]{2,}(\S.{2,50}?))?[ \t]*$", re.M)
 
@@ -817,10 +839,16 @@ def pass_submittals(docs):
                 if re.search(r"bidder'?s\s+proposal|bid\s+form" + (r"|form\s+of\s+tender|instructions\s+to\s+tenderers" if STRICT else ""), sec, re.I):
                     continue
                 in_sub_article = "submittal" in sec.lower()
-                has_verb = bool(SUBMIT_VERB.search(s))
+                has_verb = bool((SUBMIT_VERB_UK if STRICT else SUBMIT_VERB).search(s))
+                loose = False
+                if STRICT and not has_verb:
+                    # "will within 1 month of appointment provide a detailed programme" - a timed deliverable
+                    loose = has_verb = bool(re.search(r"\b(?:shall|will|must|is\s+to|are\s+to)\s+(?:[\w\-]+\s+){0,6}?(?:provide|produce|issue|supply)\b", s, re.I) and TIMING_UK.search(s))
                 if not (has_verb or in_sub_article):
                     continue
                 types = classify_submittal(s)
+                if not types and STRICT and has_verb and TIMING_UK.search(s):
+                    types = ["Other (timed deliverable)"]
                 if not types:
                     continue
                 if STRICT and SUB_EXCLUDE_UK_EXTRA.search(s) and not re.search(r"shop\s+drawings?|product\s+data|samples?\s+for|installation\s+drawings?", s, re.I):
@@ -840,10 +868,10 @@ def pass_submittals(docs):
                     if str(r["Page"]) != str(pi + 1) and p not in r["Also on pages"]:
                         r["Also on pages"] = (r["Also on pages"] + ", " + p).strip(", ")
                     continue
-                tm = TIMING.search(s)
+                tm = TIMING.search(s) or (TIMING_UK.search(s) if STRICT else None)
                 r = {"Type": ", ".join(types[:2]), "Submittal": shorten(s), "Timing": clean(tm.group(0)) if tm else "",
                      "Reference": "", "Document": d.name, "Section": sec, "Page": pi + 1, "Also on pages": "",
-                     "Confidence": "HIGH" if has_verb else "MEDIUM"}
+                     "Confidence": "HIGH" if has_verb and not loose else "MEDIUM"}
                 idx[key] = r
                 rows.append(r)
     head, rest = rows[:listed], rows[listed:]
@@ -855,7 +883,9 @@ def pass_submittals(docs):
 # =====================================================================================
 # 7. Costly items (trade watchlists)
 # =====================================================================================
-NEGATED = re.compile(r"\b(?:reimburs\w*|(?:paid|furnished|provided|borne|supplied)\s+by\s+(?:the\s+)?(?:city|owner|government|county|agency|employer|client|others|main\s+contractor)|by\s+others|prohibited|not\s+(?:be\s+)?(?:permitted|allowed|required|acceptable|used)|shall\s+not|do\s+not|will\s+not\s+be\s+(?:required|permitted)|is\s+not\s+required|are\s+not\s+required|no\s+\w+\s+(?:is|are)\s+(?:required|permitted))\b", re.I)
+NEGATED = re.compile(r"\b(?:reimburs\w*|(?:paid|furnished|provided|borne)\s+by\s+the\s+(?:city|owner|government|county|agency)|prohibited|not\s+(?:be\s+)?(?:permitted|allowed|required|acceptable|used)|shall\s+not|do\s+not|will\s+not\s+be\s+(?:required|permitted)|is\s+not\s+required|are\s+not\s+required|no\s+\w+\s+(?:is|are)\s+(?:required|permitted))\b", re.I)
+NEGATED_US = NEGATED
+NEGATED_UK = re.compile(r"\b(?:reimburs\w*|(?:paid|furnished|provided|borne|supplied)\s+by\s+(?:the\s+)?(?:city|owner|government|county|agency|employer|client|others|main\s+contractor)|by\s+others|prohibited|not\s+(?:be\s+)?(?:permitted|allowed|required|acceptable|used)|shall\s+not|do\s+not|will\s+not\s+be\s+(?:required|permitted)|is\s+not\s+required|are\s+not\s+required|no\s+\w+\s+(?:is|are)\s+(?:required|permitted))\b", re.I)
 
 def compile_term(pat):
     return re.compile(r"(?<![A-Za-z0-9])(?:" + pat.replace(" ", r"[\s\-]+") + r")(?![A-Za-z0-9])", re.I)
@@ -894,7 +924,7 @@ def pass_costly(docs, trades, watch):
 # 8. RFI list (price-relevant ambiguity only)
 # =====================================================================================
 AUTH_US = r"(?:engineer|architect|owner|city|county|director|inspector|contracting\s+officer|\bCOR\b|resident\s+engineer|government|agency|district|consultant)"
-AUTH_UK = AUTH_US[:-1] + r"|employer|client|contract\s+administrator|\bCA\b|project\s+manager|supervisor|principal\s+designer|main\s+contractor|clerk\s+of\s+works|quantity\s+surveyor|\bQS\b|services\s+engineer|M&E\s+consultant)"
+AUTH_UK = AUTH_US[:-1] + r"|employer|client|contract\s+administrator|\bCA\b|project\s+manager|supervisor|principal\s+designer|main\s+contractor|clerk\s+of\s+works|quantity\s+surveyor|\bQS\b|services\s+engineer|M&E\s+consultant|construction\s+manager|validation\s+(?:manager|engineer)|design\s+team|designer)"
 def rfi_rules(AUTH, uk=False):
     rules = [
         ("Unforeseen condition - who pays?", 3, r"(?:rock|ledge|groundwater|ground\s+water|contaminat\w*|hazardous|unsuitable\s+(?:material|soil)s?|obstructions?|unknown\s+utilities|buried\s+\w+)[^.]{0,80}?(?:if|where|when|as)\s+encountered|(?:if|where|when)\s+encountered",
@@ -905,7 +935,7 @@ def rfi_rules(AUTH, uk=False):
          "Please define the extent / quantity so it can be priced. As written, scope is decided later."),
         ("Subjective determination", 2, r"in\s+the\s+opinion\s+of\s+(?:the\s+)?" + AUTH + r"|" + AUTH + r"'?s?\s+(?:sole\s+)?discretion|(?:deemed|considered)\s+(?:necessary|unsuitable|unacceptable|defective)\s+by",
          "Please state the objective criteria that will be used for this determination."),
-        ("Undefined acceptance criteria", 2, r"to\s+the\s+satisfaction\s+of|satisfactory\s+to\s+the\s+" + AUTH + r"|acceptable\s+to\s+the\s+" + AUTH,
+        ("Undefined acceptance criteria", 2, r"to\s+the\s+" + (r"(?:entire\s+|full\s+|reasonable\s+)?" if uk else "") + r"satisfaction\s+of|satisfactory\s+to\s+the\s+" + AUTH + r"|acceptable\s+to\s+the\s+" + AUTH,
          "Please give measurable acceptance criteria (tolerance, test, standard)."),
         ("Match existing", 2, r"match(?:ing)?\s+(?:the\s+)?existing|(?:same\s+as|to\s+match)\s+(?:the\s+)?(?:existing|adjacent)",
          "Please identify the existing product / provide a sample or spec to match."),
@@ -925,7 +955,9 @@ RFI_RX = [(c, w, re.compile(p, re.I), q) for c, w, p, q in RFI_RULES]
 RFI_RX_US = RFI_RX
 RFI_RX_UK = [(c, w, re.compile(p, re.I), q) for c, w, p, q in rfi_rules(AUTH_UK, uk=True)]
 RFI_EXCLUDE = re.compile(r"\b(?:payments?|retainage|retention|indemnif\w*|surety|bonds?|bonding|insurance|insurer|rating|execute\s+the\s+contract|award\w*|counsel|suspension|suspend|terminat\w*|council|patent\w*|royalt\w*|progress\s+estimate|invoice\w*|records?|documents?|copies|personnel|instructors?|superintendent|staff|employees?)\b", re.I)
-SCOPE_VERB = re.compile(r"\b(?:remov\w*|dispos\w*|furnish\w*|install\w*|provid\w*|replac\w*|repair\w*|excavat\w*|plac\w*|construct(?:ed)?\b|relocat\w*|protect\w*|clean\w*|haul\w*|backfill\w*|shor\w*|dewater\w*|test\w*|restor\w*|maintain\w*|erect\w*|patch\w*|resurfac\w*|stripe|striping|cur(?:e|ed|ing)|mak(?:e|ing)\s+good|commission\w*|terminat(?:e|ed|ing|ion)s?\s+(?:of\s+)?(?:cables?|conductors?))\b", re.I)
+SCOPE_VERB = re.compile(r"\b(?:remov\w*|dispos\w*|furnish\w*|install\w*|provid\w*|replac\w*|repair\w*|excavat\w*|plac\w*|construct(?:ed)?\b|relocat\w*|protect\w*|clean\w*|haul\w*|backfill\w*|shor\w*|dewater\w*|test\w*|restor\w*|maintain\w*|erect\w*|patch\w*|resurfac\w*|stripe|striping|cur(?:e|ed|ing))\b", re.I)
+
+SCOPE_VERB_UK = re.compile(SCOPE_VERB.pattern[:-3] + r"|mak(?:e|ing)\s+good|terminat(?:e|ed|ing|ion)s?\s+(?:of\s+)?(?:cables?|conductors?)|design\w*|demonstrat\w*|obtain\w*|commission\w*|waive\w*)\b", re.I)
 
 def pass_rfi(docs):
     rows, idx = [], {}
@@ -934,7 +966,7 @@ def pass_rfi(docs):
             s = d.sentence_at(pi, m.start())[2]
             if TOC_LINE.search(s) or len(s) < 25 or RFI_EXCLUDE.search(s) or not_a_requirement(d, pi, m.start(), s):
                 continue
-            if cat in ("Scope set later by the Engineer", "Undefined acceptance criteria", "Subjective determination", "Approval-based acceptance") and not SCOPE_VERB.search(s):
+            if cat in ("Scope set later by the Engineer", "Undefined acceptance criteria", "Subjective determination", "Approval-based acceptance") and not (SCOPE_VERB_UK if STRICT else SCOPE_VERB).search(s):
                 continue
             key = re.sub(r"\W+", "", s.lower())[:120]
             if key in idx:
@@ -1091,13 +1123,14 @@ UNIVERSAL = {"us": "universal", "uk": "universal_uk"}
 def configure(region):
     """Swap the pattern tables. 'us' is the original engine exactly; 'uk' adds UK wording on top."""
     global REGION, STRICT, HDR_PATTERNS, ARTICLES, INDEX_EXTRA, KV, KV_LIMIT, BID_KILLER_RX, BK_KIND, FORM_RE
-    global FORMS_LABEL, HIDDEN_RX, OR_EQUAL, NO_SUB, GLOBAL_OR_EQUAL, SUB_TYPE_RX, RFI_RX, TECH_ONLY_WARNING
+    global FORMS_LABEL, NEGATED, HIDDEN_RX, OR_EQUAL, NO_SUB, GLOBAL_OR_EQUAL, SUB_TYPE_RX, RFI_RX, TECH_ONLY_WARNING
     REGION = region
     if region == "us":
         return
     STRICT = True
     HDR_PATTERNS, ARTICLES = HDR_PATTERNS_UK, ARTICLES_UK
     INDEX_EXTRA = lambda t: (len(re.findall(r"(?m)^[ \t]*[A-Z]\d{2}[ \t]+\S", t)) >= 10
+                             or len(re.findall(r"(?m)^[ \t]*Section[ \t]+\d{1,2}[ \t]*[-–—]", t)) >= 6
                              or bool(re.search(r"(?m)^[ \t]*CONTENTS[ \t]*$", t)))
     KV, KV_LIMIT = KV_UK, 4
     BID_KILLER_RX = {k: [re.compile(p, re.I) for p in v] for k, v in BID_KILLERS_UK.items()}
@@ -1106,6 +1139,7 @@ def configure(region):
     HIDDEN_RX = HIDDEN_RX_UK
     OR_EQUAL, NO_SUB, GLOBAL_OR_EQUAL = OR_EQUAL_UK, NO_SUB_UK, GLOBAL_OR_EQUAL_UK
     SUB_TYPE_RX = SUB_TYPE_RX_UK
+    NEGATED = NEGATED_UK
     RFI_RX = RFI_RX_UK
     TECH_ONLY_WARNING = ("⚠ Little or no tender / contract content detected.", "", "",
         "This looks like a technical spec only (e.g. NBS work sections). Tender-killers - return date, LADs, bonds, "
