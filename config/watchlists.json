@@ -1,5 +1,5 @@
 {
-  "_readme": "Price-impacting requirements estimators scan specs for. Boilerplate (ACI, aggregate, psi...) is deliberately excluded. 'match' is a case-insensitive regex; a literal space matches space OR hyphen (so 'epoxy coated' also finds 'epoxy-coated'); write an optional separator as (?: )?. Never put a space inside [brackets]. Add items per client scope. Region 'uk' (default) uses concrete, mep, electrical, finishes and universal_uk; region 'us' uses concrete, mep, finishes and universal.",
+  "_readme": "UK price-impacting requirements estimators scan specs for. 'match' is a case-insensitive regex; a literal space matches space OR hyphen (so 'epoxy coated' also finds 'epoxy-coated'); write an optional separator as (?: )?. Never put a space inside [brackets]. Wrap an abbreviation as (?-i:\\bUPS\\b) to match capitals only. 'universal' is always included; the others are chosen with --trade. Add items per client scope.",
   "concrete": [
     {
       "item": "Epoxy-coated reinforcing",
@@ -184,29 +184,9 @@
       "why": "training hours"
     },
     {
-      "item": "Compression fittings",
-      "match": "compression (?:type )?fittings?",
-      "why": "priced higher than set-screw fittings"
-    },
-    {
-      "item": "Insulated throat fittings",
-      "match": "insulated throat",
-      "why": "fitting premium"
-    },
-    {
       "item": "PVC-coated rigid conduit",
       "match": "PVC coated (?:rigid|RGS|conduit|elbows?)|coated rigid (?:steel )?(?:conduit|elbows?)",
       "why": "premium conduit and elbows"
-    },
-    {
-      "item": "Rigid steel / IMC conduit",
-      "match": "rigid (?:galvanized )?steel conduit|\\bRGS\\b|\\bIMC\\b",
-      "why": "priced higher than EMT"
-    },
-    {
-      "item": "MC cable restriction",
-      "match": "MC cable|metal clad cable",
-      "why": "wiring method changes labor - check whether it is allowed"
     },
     {
       "item": "Minimum conduit size",
@@ -222,11 +202,6 @@
       "item": "Temporary power / lighting",
       "match": "temporary (?:power|lighting|electric\\w*)",
       "why": "temp power cost"
-    },
-    {
-      "item": "Painted fire-alarm conduit",
-      "match": "(?:paint\\w*|red) (?:fire alarm )?conduits?|fire alarm conduits? (?:shall be )?painted",
-      "why": "painting labor"
     },
     {
       "item": "Electrical testing",
@@ -366,8 +341,8 @@
       "why": "rep visits"
     },
     {
-      "item": "LEED / recycled content",
-      "match": "\\bLEED\\b|recycled content|regional materials|\\bEPDs?\\b",
+      "item": "BREEAM / LEED / recycled content",
+      "match": "\\bBREEAM\\b|\\bLEED\\b|recycled content|regional materials|\\bEPDs?\\b",
       "why": "product restrictions and documentation"
     },
     {
@@ -379,93 +354,6 @@
       "item": "Paint coat count",
       "match": "(?:three|3) (?:finish )?coats|primer (?:and|plus) (?:two|2)|(?:two|2) (?:finish|top) coats",
       "why": "coat count drives labor"
-    }
-  ],
-  "universal": [
-    {
-      "item": "Special inspections",
-      "match": "special inspections?",
-      "why": "inspection coordination and fees"
-    },
-    {
-      "item": "Independent testing",
-      "match": "(?:independent|third party) (?:testing|inspection|laboratory)",
-      "why": "check who pays for testing"
-    },
-    {
-      "item": "Record / as-built drawings",
-      "match": "as built|record drawings?",
-      "why": "documentation cost"
-    },
-    {
-      "item": "Extended warranty",
-      "match": "extended warrant\\w*|(?:two|three|five|ten|\\d+) (?:\\(\\d+\\) )?years? warrant\\w*",
-      "why": "warranty premium"
-    },
-    {
-      "item": "Restricted working hours",
-      "match": "(?:working|work) hours (?:are|shall be|will be) (?:limited|restricted)|(?:limited|restricted) (?:working|work) hours|night work|weekend work|after hours work|off hours|work (?:shall|will) (?:be performed|occur|be done) (?:only )?between",
-      "why": "overtime / night-shift premium"
-    },
-    {
-      "item": "Phasing / occupied facility",
-      "match": "phased (?:construction|work)|phasing|occupied (?:building|facility|areas?)",
-      "why": "productivity loss, protection"
-    },
-    {
-      "item": "Security / badging",
-      "match": "security clearances?|background checks?|escorted at all times|(?:contractor|worker|employee|personnel)s? (?:shall|must) (?:obtain|wear|display) (?:an? )?(?:identification )?badges?|badging",
-      "why": "access time and admin"
-    },
-    {
-      "item": "Domestic preference (BABA)",
-      "match": "buy american|build america|\\bBABA\\b|domestic (?:preference|materials|products)",
-      "why": "restricts products, price premium"
-    },
-    {
-      "item": "Permits and fees",
-      "match": "(?:obtain|pay for) (?:all )?(?:necessary |required )?permits|permit fees",
-      "why": "permit costs"
-    },
-    {
-      "item": "Temporary facilities",
-      "match": "field office|job trailer|temporary facilities|temporary toilets?",
-      "why": "general conditions cost"
-    },
-    {
-      "item": "Temporary heat / winter protection",
-      "match": "temporary heat|winter protection|winter conditions",
-      "why": "protection cost"
-    },
-    {
-      "item": "Dewatering",
-      "match": "dewater\\w*",
-      "why": "pumps, permits, discharge"
-    },
-    {
-      "item": "Traffic control",
-      "match": "traffic control|flagg(?:er|ers|ing)",
-      "why": "traffic plan, flaggers, devices"
-    },
-    {
-      "item": "Stormwater / erosion control",
-      "match": "\\bSWPPP\\b|stormwater pollution|erosion control|best management practices",
-      "why": "compliance and BMPs"
-    },
-    {
-      "item": "Hazardous materials",
-      "match": "asbestos|lead based paint|hazardous materials?|abatement",
-      "why": "abatement subcontractor"
-    },
-    {
-      "item": "Disposal / hauling",
-      "match": "disposal fees|dump fees|haul\\w* off site|legally dispos\\w*",
-      "why": "haul and tipping fees"
-    },
-    {
-      "item": "Salvage to owner",
-      "match": "salvag\\w*|deliver(?:ed)? to the owner",
-      "why": "careful removal and handling"
     }
   ],
   "electrical": [
@@ -570,7 +458,7 @@
       "why": "specialist interfaces and testing"
     }
   ],
-  "universal_uk": [
+  "universal": [
     {
       "item": "CDM documentation",
       "match": "\\bCDM\\b|construction phase plan|pre-?construction information|principal designer|health and safety file",
