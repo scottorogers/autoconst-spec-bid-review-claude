@@ -1,0 +1,42 @@
+SYNTHETIC TEST DOCUMENT - NOT A REAL TENDER. Written for tests/test_uk.py only.
+
+INVITATION TO TENDER - LV AND CONTAINMENT SUBCONTRACT
+
+1.1  TENDER RETURN
+Tenders shall be returned via the portal no later than 12:00 noon on Friday 13 November 2026.
+A mid-tender site visit is mandatory and will take place at 10:00 on 3 November 2026.
+Performance bond: a performance bond of 10% of the Subcontract Sum is required.
+Tender queries shall be submitted no later than 6 November 2026. Late queries will not be answered.
+Tenders shall remain open for acceptance for 90 days from the tender return date.
+
+1.2  CONTRACT
+The form of contract shall be the JCT Design and Build Sub-Contract 2016 with the Schedule of Amendments at Appendix 2.
+Liquidated and ascertained damages shall be £5,000 per week or part thereof.
+A parent company guarantee will be required from the successful tenderer.
+Collateral warranties shall be provided to the funder and tenant.
+Retention shall be 3% reducing to 1.5% at Practical Completion.
+The date for Practical Completion is 26 weeks from the date of possession.
+Public liability insurance of £10,000,000 for any one occurrence is required.
+The Sub-Contractor is responsible for the detailed design of the containment as a Contractor's Designed Portion.
+The Sub-Contractor shall hold CHAS, Constructionline Gold and NICEIC accreditation.
+Variant tenders will not be accepted. Qualified tenders may be rejected.
+Tender addenda issued during the tender period shall be acknowledged on the Form of Tender.
+Tenderers shall complete and return the Form of Tender and the Pricing Schedule.
+SECTION Y61 LV CABLES AND WIRING
+
+110  SCOPE
+All installations shall comply with BS 7671.
+Cable containment shall be Unistrut or approved equivalent.
+Testing and commissioning shall be deemed included in the Contract Sum.
+Firestopping to all penetrations shall be provided at no additional cost to the Employer.
+The Sub-Contractor shall allow for all out of hours working in the live data hall.
+SECTION Y63 SUPPORT COMPONENTS - CABLES
+
+210  CABLE LADDER
+   - Manufacturer: Unitrunk Ltd
+   - Product reference: HD ladder 150
+   - Substitution: Not permitted.
+Submit installation drawings for all cable ladder routes no later than 4 weeks prior to installation.
+Additional supports shall be installed as directed by the Contract Administrator.
+Make good all finishes to match existing.
+Intentionally blank page 4 of the synthetic fixture, padded so the scanned-PDF check passes. Intentionally blank page 4 of the synthetic fixture, padded so the scanned-PDF check passes. Intentionally blank page 5 of the synthetic fixture, padded so the scanned-PDF check passes. Intentionally blank page 5 of the synthetic fixture, padded so the scanned-PDF check passes. Intentionally blank page 6 of the synthetic fixture, padded so the scanned-PDF check passes. Intentionally blank page 6 of the synthetic fixture, padded so the scanned-PDF check passes. 

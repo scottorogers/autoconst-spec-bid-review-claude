@@ -4,15 +4,41 @@
 
 Estimators already keep a spec-review form: the costly requirement, its section, its page. Filling it means reading 200-600 pages by hand. This tool reads the whole thing and fills the form for you in minutes, as an Excel workbook you can check line by line.
 
-Built for GCs, subcontractors, estimators and PMs - anyone who has to read a spec before a bid or before building. Works on US CSI MasterFormat specs (5- and 6-digit sections), public-works special provisions (Roman-numeral sections, exhibits) and trade-only sections.
+Built for GCs, subcontractors, estimators and PMs - anyone who has to read a spec before a bid or before building.
+
+Two modes:
+
+- **`--region uk` (default)** - UK tenders and subcontract enquiries: ITT / Instructions to Tenderers, JCT / NEC / FIDIC, NBS work sections (`Y61`, `SECTION Y63`, NBS clause numbers like `210`), Uniclass codes (`Ss_70_30_45`), £, LADs per week, Employer / Client / Contract Administrator, "or approved equivalent" / "similar approved", day-month dates.
+- **`--region us`** - the original engine, unchanged: US CSI MasterFormat specs (5- and 6-digit sections), public-works special provisions (Roman-numeral sections, exhibits) and trade-only sections.
 
 Same honesty rule as the [Drawing Takeoff](https://github.com/hamzaabduljabbar/autoConst-drawing-takeoff-claude) and [Spec Index](https://github.com/hamzaabduljabbar/autoConst-spec-index-claude) tools - every number is sourced, nothing is invented.
 
 ---
 
-## What this looks like in practice
+## UK mode - what it checks
 
-Run on a real **406-page City of Alameda public-works tender**. The Summary tab:
+| Tab | UK mode adds |
+|---|---|
+| **Bid-Killers** | Tender return date/time, mandatory site visit, tender queries deadline, tender validity, form of contract (JCT/NEC/FIDIC + edition), contract amendments / Z clauses, LADs / delay damages, performance bond, parent company guarantee, collateral warranties / third party rights, retention, payment terms, contract period / completion, insurance, design responsibility (CDP), CDM duties, accreditations / cards, variants / qualified tenders, tender addenda, required tender returns (Form of Tender, pricing schedule, CSA, BoQ) |
+| **Hidden Costs** | "included in the Contract Sum / rates", "deemed to have allowed", "allow for", "at no additional cost to the Employer / Client / Main Contractor", "make good", contra charges |
+| **Sole-Source** | "X or approved equivalent" / "similar approved", NBS `Manufacturer:` / `Product reference:` / `Substitution:` lines |
+| **Costly Items** | `electrical` watchlist (LSZH, fire-resistant cable, SWA, ladder/tray/basket, busbar, earthing & bonding, SPDs, segregation, labelling, calcs, EIC/test certs, IST/witness testing, thermography, fibre/copper testing, raised floors, MEWPs, UPS/generator) and `universal_uk` (CDM, cards, accreditations, permits to work, RAMS, BIM/ISO 19650, out-of-hours, live environment, vetting, temporary works, waste, asbestos, attendances, O&Ms, defects period, training, Soft Landings, social value) |
+| **RFI List** | Contract Administrator / Project Manager / Employer / Client roles, provisional & PC sums, "to the approval of" |
+
+Also in UK mode:
+
+- **Values come from the matched sentence only.** If a value has to come from the line after a heading, the row drops to MEDIUM and the Notes column says so. A match that runs across two sentences is ignored.
+- **NBS section headers are recognised**, so a clause on the Y63 page is cited to Y63, not to the section before it.
+
+**Status:** UK mode is checked against a synthetic tender (`tests/fixtures/uk_tender_synthetic.txt`), not yet against a real UK tender. Check every row against the page until it has been run on real jobs.
+
+Every workbook now labels the page column **PDF page** (1 = first sheet of the PDF), not the printed page number.
+
+---
+
+## What this looks like in practice (US mode)
+
+Run on a real **406-page City of Alameda public-works tender** (`--region us`). The Summary tab:
 
 ```
 BID-KILLERS                     KEY VALUE                                   PAGE
@@ -94,9 +120,9 @@ Open Claude Code and paste:
 
 ### Step 3 - Ask for a review
 
-> *"Review this spec for bidding: C:\bids\city-tender.pdf"*
+> *"Review this spec for bidding: C:\bids\itt.pdf"*
 
-> *"Run a bid review on spec.pdf and invitation-to-bid.pdf - I'm the electrical sub."*
+> *"Run a bid review on spec.pdf and itt.pdf - I'm the electrical sub."*
 
 Claude runs the tool, opens the workbook and walks you through the bid-killers first, with page numbers.
 
@@ -104,11 +130,13 @@ Or run it yourself:
 
 ```bash
 py scripts/bid_review.py path/to/spec.pdf [more.pdf ...] --trade all --out outputs/spec-review.xlsx
+py scripts/bid_review.py path/to/spec.pdf --region us      # US CSI / bid documents
 ```
 
-`--trade`: `all` (default), `concrete`, `mep`, `finishes`, or a comma list like `mep,finishes`.
+`--region`: `uk` (default) or `us`.
+`--trade`: `all` (default), `electrical`, `concrete`, `mep`, `finishes`, or a comma list like `electrical,mep`. The site-wide list (`universal_uk` / `universal`) is always added.
 
-**Tip:** pass the whole bid set. Bid bonds, liquidated damages and wage rates usually live in the bid invitation / general conditions, not the technical specification.
+**Tip:** pass the whole tender set. LADs, bonds, retention, the form of contract and amendments usually live in the ITT / Contract Particulars / subcontract enquiry, not the NBS spec.
 
 ---
 
@@ -122,7 +150,9 @@ py scripts/bid_review.py path/to/spec.pdf [more.pdf ...] --trade all --out outpu
 | Short tender (NWIT) | 39 | Post-award 7-day insurance/bond deadline |
 | Division 03 concrete section | 80 | Correctly no bid-killers; or-equal products merged across sections |
 
-`tests/regression.py` re-runs these under every `pdftotext` build on the machine (xpdf and Poppler output differs - the tool normalises it) and checks the hand-verified values. Put the PDFs in the folder above the repo, or set `SPEC_DIR`.
+`tests/test_uk.py` checks UK mode against the synthetic fixture. It needs no PDFs and no pdftotext: `py tests/test_uk.py`.
+
+`tests/regression.py` re-runs these (in `--region us`) under every `pdftotext` build on the machine (xpdf and Poppler output differs - the tool normalises it) and checks the hand-verified values. Put the PDFs in the folder above the repo, or set `SPEC_DIR`.
 
 ---
 
@@ -136,7 +166,9 @@ autoConst-spec-bid-review-claude/
   requirements.txt
   config/watchlists.json   <- trade cost-driver watchlists (edit to suit your scope)
   scripts/bid_review.py    <- the engine
-  tests/regression.py      <- regression checks against real specs
+  tests/test_uk.py         <- UK-mode checks on a synthetic tender (no PDFs needed)
+  tests/fixtures/          <- the synthetic UK tender text
+  tests/regression.py      <- regression checks against real US specs
   examples/                <- a real output workbook (Alameda tender)
   work/                    <- extracted text (auto-generated)
   outputs/                 <- your workbooks (auto-generated)
@@ -152,7 +184,9 @@ autoConst-spec-bid-review-claude/
 
 **"Cannot write ... probably open in Excel"** - Close the workbook, or pass a different `--out`.
 
-**Few or no bid-killers** - You probably ran a technical-only spec. Add the bid invitation / instructions to bidders / general conditions PDF to the same command.
+**Few or no bid-killers** - You probably ran a technical-only spec. Add the ITT / Instructions to Tenderers / Contract Particulars (UK) or bid invitation / general conditions (US) to the same command.
+
+**US spec giving odd results** - Add `--region us`. UK is the default.
 
 **A costly item that doesn't apply to you** - Watchlists are keyword-based. Edit `config/watchlists.json`, or run with `--trade` for your trade only.
 

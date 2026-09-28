@@ -5,8 +5,9 @@ Regression check: re-run bid_review.py on real specs and assert known-correct an
     py tests/regression.py            # all specs found on disk
     py tests/regression.py sdps div03 # only these
 
-Spec PDFs are looked up in SPEC_DIR (default: the folder above this repo). Missing PDFs are
-SKIPPED, not failed. Exit code 0 = every check that ran passed.
+These are the author's US specs, run with --region us. Spec PDFs are looked up in SPEC_DIR
+(default: the folder above this repo). Missing PDFs are SKIPPED; if nothing ran at all the exit code
+is non-zero. Exit code 0 = at least one check ran and every check that ran passed.
 Every expected value below was verified by hand against the source PDF page.
 """
 import os, subprocess, sys, tempfile
@@ -34,23 +35,23 @@ def check_sdps(wb):
     yield "bid due Sep 8 2021", "September 8, 2021" in str(b["Bid due date / opening"]["Key value"])
     yield "mandatory pre-bid Aug 18 2021", "August 18, 2021" in str(b["Mandatory pre-bid / job-walk"]["Key value"])
     yield "bid bond 10%", b["Bid bond / bid security"]["Key value"] == "10%"
-    yield "bid bond page 6", b["Bid bond / bid security"]["Page"] == 6
+    yield "bid bond page 6", b["Bid bond / bid security"]["PDF page"] == 6
     yield "LD $2,500/day", b["Liquidated damages"]["Key value"] == "$2,500.00 per day"
-    yield "LD page 34", b["Liquidated damages"]["Page"] == 34
+    yield "LD page 34", b["Liquidated damages"]["PDF page"] == 34
     yield "fine $250/occurrence/day (not the LD)", str(b["Per-day penalties / fines"]["Key value"]).startswith("$250.00")
     yield "contract time 250 working days", "(250) consecutive working days" in str(b["Contract time / completion"]["Key value"])
     yield "bid validity 90 days", b["Bid validity period"]["Key value"] == "90 days"
     # p13 says both 'an "A" license or a "C" license' and 'Class A or C-10' - either is correct
     lic = str(b["Required contractor license"]["Key value"])
     yield "license A or C", ('"A" license' in lic and '"C" license' in lic) or lic.startswith("Class A or C")
-    yield "post-award forfeit clause p8", b["Post-award bonds/insurance deadline"]["Page"] == 8
-    yield "addenda non-responsive p29", "non-responsive" in str(b["Addenda acknowledgement"]["Clause"]) and b["Addenda acknowledgement"]["Page"] == 29
+    yield "post-award forfeit clause p8", b["Post-award bonds/insurance deadline"]["PDF page"] == 8
+    yield "addenda non-responsive p29", "non-responsive" in str(b["Addenda acknowledgement"]["Clause"]) and b["Addenda acknowledgement"]["PDF page"] == 29
     yield "zero alternates", "ZERO" in str(b["Alternates"]["Clause"])
     # table of contents p2 lists Exhibits A-N (14) and Attachments A-G (7)
     yield "14 exhibits A-N + 7 attachments", b["Required bid forms / exhibits"]["Key value"] == "14 exhibits (A–N), 7 attachments"
     yield "substitution deadline NOT FOUND", b["Substitution request deadline"]["Clause"] == "NOT FOUND"
     ss = rows(wb, "Sole-Source")
-    yield "global or-equal clause p48", ss[0]["Classification"].startswith("GLOBAL") and ss[0]["Page"] == 48
+    yield "global or-equal clause p48", ss[0]["Classification"].startswith("GLOBAL") and ss[0]["PDF page"] == 48
     sub = rows(wb, "Submittals")
     yield "9 rows from spec's submittal schedule", sum(1 for r in sub if r["Type"] == "From the spec's submittal schedule") == 9
     yield "no bid-phase 'submitting bids' submittal", not any("submitting bids" in str(r["Submittal"]).lower() for r in sub)
@@ -143,7 +144,7 @@ def main():
                     skipped += 1
                     continue
                 out = Path(tmp) / f"{name}-{abs(hash(exe)) % 10**6}.xlsx"
-                r = subprocess.run([sys.executable, str(ENGINE), str(src), "--trade", trade, "--out", str(out)],
+                r = subprocess.run([sys.executable, str(ENGINE), str(src), "--region", "us", "--trade", trade, "--out", str(out)],
                                    capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
                 if r.returncode != 0:
                     print(f"FAIL {name}: engine crashed\n{r.stderr[-800:]}")
@@ -157,6 +158,9 @@ def main():
                     failed += (not ok)
                 print(f"  {name}: done")
     print(f"\n{passed} passed, {failed} failed, {skipped} spec runs skipped, {len(exes)} extractor(s)")
+    if passed + failed == 0:
+        # every spec was skipped - that is not a pass
+        sys.exit("NOTHING RAN: no spec PDFs found in SPEC_DIR. For a check that needs no PDFs run tests/test_uk.py.")
     sys.exit(1 if failed else 0)
 
 if __name__ == "__main__":

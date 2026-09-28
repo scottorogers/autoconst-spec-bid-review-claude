@@ -1,6 +1,6 @@
 ---
 name: spec-bid-review
-description: Read a construction specification / tender PDF (or a whole bid set) and produce the estimator's spec-review form as Excel - every price-impacting requirement pulled out and cited to its section and page, so a bidder does not read 300 pages by hand. Tabs - Summary; BID-KILLERS (bid due date, mandatory pre-bid, bid bond %, performance/payment bonds, post-award deadlines, bid validity, liquidated damages $/day, fines, contract time, insurance, prevailing wage, license, retainage, alternates, addenda, required forms) with the key value pulled out; HIDDEN COSTS (no separate payment, incidental, at Contractor's expense); SOLE-SOURCE / limited list / basis of design / or-equal; SUBMITTAL register; trade COSTLY ITEMS (concrete/MEP/finishes/universal watchlists); ranked RFI list with drafted questions. Every row has section + page + confidence; missing bid-killers are reported NOT FOUND, never invented. Use when a user asks to review a spec before bidding, find bid-killers, find hidden costs, pull submittals, catch sole-source products, draft RFIs, or build a spec-review checklist. Text-layer PDFs only; scanned specs need OCR first.
+description: UK-first (use --region us for US CSI specs). Read a construction specification / tender PDF (or a whole bid set) and produce the estimator's spec-review form as Excel - every price-impacting requirement pulled out and cited to its section and page, so a bidder does not read 300 pages by hand. Tabs - Summary; BID-KILLERS (bid due date, mandatory pre-bid, bid bond %, performance/payment bonds, post-award deadlines, bid validity, liquidated damages $/day, fines, contract time, insurance, prevailing wage, license, retainage, alternates, addenda, required forms) with the key value pulled out; HIDDEN COSTS (no separate payment, incidental, at Contractor's expense); SOLE-SOURCE / limited list / basis of design / or-equal; SUBMITTAL register; trade COSTLY ITEMS (concrete/MEP/finishes/universal watchlists); ranked RFI list with drafted questions. Every row has section + page + confidence; missing bid-killers are reported NOT FOUND, never invented. Use when a user asks to review a spec before bidding, find bid-killers, find hidden costs, pull submittals, catch sole-source products, draft RFIs, or build a spec-review checklist. Text-layer PDFs only; scanned specs need OCR first.
 ---
 
 # Spec Bid-Review
@@ -31,6 +31,16 @@ Automatically ignored everywhere: table-of-contents and drawing-index pages, "Ap
 Publications / References / Definitions / Related Requirements" articles, standards lists,
 running headers and footers.
 
+## Regions
+
+- `--region uk` (default): ITT / JCT / NEC / FIDIC, NBS work sections (`Y61`) and clauses (`210`), Uniclass,
+  £, LADs per week, Employer / Client / Contract Administrator, "or approved equivalent", NBS `Manufacturer:`
+  lines, `electrical` + `universal_uk` watchlists. Values come from the matched sentence only; a value
+  borrowed from the line after a heading is MEDIUM with a note. Tested on a synthetic fixture only so far.
+- `--region us`: the original engine, unchanged.
+
+Page numbers in every tab are **PDF page** numbers, not the printed footer page.
+
 ## Workflow
 
 Needs Python 3 + `openpyxl`, and Poppler `pdftotext` on PATH.
@@ -38,9 +48,10 @@ Needs Python 3 + `openpyxl`, and Poppler `pdftotext` on PATH.
 1. **Run it on the PDF(s).** Pass the whole bid set - bid-killers usually live in the bid
    invitation / solicitation, not the technical specification:
    ```
-   py scripts/bid_review.py spec.pdf [solicitation.pdf ...] --trade all --out outputs/spec-review.xlsx
+   py scripts/bid_review.py spec.pdf [itt.pdf ...] --trade all --out outputs/spec-review.xlsx
    ```
-   `--trade`: `all` (default), `concrete`, `mep`, `finishes`, or a comma list.
+   `--region`: `uk` (default) or `us`. `--trade`: `all` (default), `electrical`, `concrete`, `mep`,
+   `finishes`, or a comma list.
    Scanned PDFs (no text layer) are refused with an OCR message.
 
 2. **Open the workbook.** Tabs: Summary (read first), Bid-Killers, Hidden Costs,
@@ -51,22 +62,28 @@ Needs Python 3 + `openpyxl`, and Poppler `pdftotext` on PATH.
 
 - Run `bid_review.py`, then read the Summary back to the user: bid-killers with their
   values and pages first, then hidden costs, then the top RFIs.
-- Cite the page on every requirement. If a bid-killer is NOT FOUND, say so and point out
-  it may be in a document that was not included (e.g. the solicitation / SF-1442).
-- If the Summary warns there is little Division 00/01 content, ask for the bid invitation.
+- Cite the section and PDF page on every requirement. If a bid-killer is NOT FOUND, say so and
+  point out it may be in a document that was not included (UK: ITT / Contract Particulars /
+  subcontract enquiry; US: solicitation / SF-1442).
+- A row marked MEDIUM with "value is from the sentence after the heading" - read the page before
+  quoting the value.
+- If the Summary warns there is little tender / Division 00/01 content, ask for the ITT / bid invitation.
 - Only open a raw PDF page when a table or figure has no prose around it.
 
 ## Tuning
 
 - Trade watchlists: `config/watchlists.json` - each entry has `item`, `match` (regex; a
   space matches space or hyphen) and `why`. Keep them to price drivers, not boilerplate.
-- Bid-killer patterns: `BID_KILLERS` near the top of `scripts/bid_review.py`; scoring in
+- Bid-killer patterns: `BID_KILLERS_UK` / `BID_KILLERS` (US) in `scripts/bid_review.py`; region switch in `configure()`; scoring in
   `hit_score()`.
 - Tested on: a City of Alameda public-works tender (406 pp, 18/19 bid-killers, all
   correct), a VA federal technical spec (338 pp), a 260-page municipal electrical/civil
   technical spec, a short tender (NWIT) and a Division 03 concrete section.
 
 ## Regression tests
+
+`py tests/test_uk.py` checks UK mode against `tests/fixtures/uk_tender_synthetic.txt` (no PDFs or
+pdftotext needed). It must stay at 0 failed.
 
 `py tests/regression.py` re-runs the tested specs under every `pdftotext` on the machine
 (xpdf and Poppler emit different characters - text is normalised on load so both give the

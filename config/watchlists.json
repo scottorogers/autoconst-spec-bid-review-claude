@@ -1,5 +1,5 @@
 {
-  "_readme": "Price-impacting requirements estimators scan specs for. Boilerplate (ACI, aggregate, psi...) is deliberately excluded. 'match' is a case-insensitive regex; a literal space matches space OR hyphen (so 'epoxy coated' also finds 'epoxy-coated'); write an optional separator as (?: )?. Never put a space inside [brackets]. Add items per client scope.",
+  "_readme": "Price-impacting requirements estimators scan specs for. Boilerplate (ACI, aggregate, psi...) is deliberately excluded. 'match' is a case-insensitive regex; a literal space matches space OR hyphen (so 'epoxy coated' also finds 'epoxy-coated'); write an optional separator as (?: )?. Never put a space inside [brackets]. Add items per client scope. Region 'uk' (default) uses concrete, mep, electrical, finishes and universal_uk; region 'us' uses concrete, mep, finishes and universal.",
   "concrete": [
     {
       "item": "Epoxy-coated reinforcing",
@@ -466,6 +466,215 @@
       "item": "Salvage to owner",
       "match": "salvag\\w*|deliver(?:ed)? to the owner",
       "why": "careful removal and handling"
+    }
+  ],
+  "electrical": [
+    {
+      "item": "LSZH / LS0H cables",
+      "match": "LSZH|LS0H|low smoke (?:zero|free of) halogen|low smoke halogen free",
+      "why": "cable premium over PVC"
+    },
+    {
+      "item": "Fire-resistant cables",
+      "match": "fire resist\\w* cables?|fire resistant wiring|enhanced fire (?:resistant|performance)|\\bFP ?(?:200|400|600)\\b",
+      "why": "cable premium; metal fixings and supports throughout"
+    },
+    {
+      "item": "SWA cable",
+      "match": "\\bSWA\\b|steel wire armou?red",
+      "why": "glanding, terminations, heavier supports"
+    },
+    {
+      "item": "Cable ladder",
+      "match": "cable ladders?|ladder rack",
+      "why": "heavy containment material and labour"
+    },
+    {
+      "item": "Cable tray / basket",
+      "match": "cable (?:tray|basket)s?|wire (?:mesh )?baskets?|perforated tray",
+      "why": "containment material and labour"
+    },
+    {
+      "item": "Trunking / dado trunking",
+      "match": "(?:dado|skirting|floor|steel|PVC) trunking|cable trunking",
+      "why": "containment material and labour"
+    },
+    {
+      "item": "Busbar / busway",
+      "match": "busbars?|busway|bus duct|tap off units?",
+      "why": "specialist supply and install"
+    },
+    {
+      "item": "Earthing and bonding",
+      "match": "earth(?:ing)? (?:and|&) bonding|supplementary (?:equipotential )?bonding|clean earth|earth (?:bar|electrodes?|pits?)|functional earth",
+      "why": "bonding labour, earth bars, testing"
+    },
+    {
+      "item": "Surge protection",
+      "match": "surge protect\\w*|\\bSPDs?\\b",
+      "why": "devices and coordination"
+    },
+    {
+      "item": "Segregation of services",
+      "match": "segregat\\w* (?:of )?(?:circuits|services|cables|systems)|(?:circuits|services|cables) (?:shall be )?segregated",
+      "why": "extra containment runs and dividers"
+    },
+    {
+      "item": "Cable labelling / identification",
+      "match": "cable (?:labels?|labelling|identification|tags?)|ferrules?|circuit (?:labels?|charts?)",
+      "why": "labelling labour and materials"
+    },
+    {
+      "item": "Volt drop / cable calcs",
+      "match": "volt(?:age)? drop calc\\w*|cable (?:sizing|selection) calc\\w*|discrimination (?:study|studies)|selectivity (?:study|studies)|fault level calc\\w*",
+      "why": "design and calculation hours"
+    },
+    {
+      "item": "Testing and certification",
+      "match": "electrical installation certificates?|\\bEICs?\\b|schedules? of test results|minor works certificates?|initial verification",
+      "why": "test and certification labour"
+    },
+    {
+      "item": "Integrated / witness testing",
+      "match": "integrated systems? test\\w*|\\bIST\\b|witness(?:ed)? test\\w*|level [1-5] commissioning",
+      "why": "extra test attendance and retest risk"
+    },
+    {
+      "item": "Thermographic survey",
+      "match": "thermograph\\w*|thermal imag\\w*|infra-?red survey",
+      "why": "survey cost"
+    },
+    {
+      "item": "Data cabling testing",
+      "match": "permanent link test\\w*|channel test\\w*|\\bOTDR\\b|fibre (?:test\\w*|certification)|\\bOLTS\\b",
+      "why": "test equipment and labour"
+    },
+    {
+      "item": "Raised access floor working",
+      "match": "raised (?:access )?floors?|floor void",
+      "why": "slower install under floor; tile lifting and protection"
+    },
+    {
+      "item": "Access equipment",
+      "match": "\\bMEWPs?\\b|scissor lifts?|scaffold\\w*|podium steps?|mobile towers?",
+      "why": "access plant hire"
+    },
+    {
+      "item": "Load bank testing",
+      "match": "load bank",
+      "why": "load bank hire and attendance"
+    },
+    {
+      "item": "UPS / generator works",
+      "match": "\\bUPS\\b|uninterruptible power|standby generators?|\\bATS\\b|automatic transfer switch\\w*",
+      "why": "specialist interfaces and testing"
+    }
+  ],
+  "universal_uk": [
+    {
+      "item": "CDM documentation",
+      "match": "\\bCDM\\b|construction phase plan|pre-?construction information|principal designer|health and safety file",
+      "why": "H&S management and documentation time"
+    },
+    {
+      "item": "Competence cards",
+      "match": "\\bCSCS\\b|\\bECS\\b|\\bJIB\\b|\\bCPCS\\b|\\bIPAF\\b|\\bPASMA\\b|\\bSMSTS\\b|\\bSSSTS\\b",
+      "why": "every operative carded - check labour pool and cost"
+    },
+    {
+      "item": "Accreditations",
+      "match": "\\bCHAS\\b|\\bSSIP\\b|Constructionline|SafeContractor|\\bNICEIC\\b|\\bNAPIT\\b|ISO ?(?:9001|14001|45001)",
+      "why": "pre-qualification - can exclude you"
+    },
+    {
+      "item": "Permits to work",
+      "match": "permits? to work|hot works?(?: permits?)?|lock(?:ed)? off|\\bLOTO\\b|isolation (?:certificates?|procedures?)|authorised person",
+      "why": "admin and waiting time"
+    },
+    {
+      "item": "RAMS",
+      "match": "\\bRAMS\\b|method statements?|risk assessments?",
+      "why": "documentation time before each activity"
+    },
+    {
+      "item": "BIM / information requirements",
+      "match": "\\bBIM\\b|ISO ?19650|\\bCOBie\\b|\\bEIR\\b|asset information requirements",
+      "why": "modelling and data deliverables"
+    },
+    {
+      "item": "Out-of-hours working",
+      "match": "out of hours|night (?:shifts?|work\\w*)|weekend work\\w*|(?:working|work) hours (?:are|shall be|will be) (?:limited|restricted)|(?:limited|restricted) (?:working|work) hours",
+      "why": "overtime / shift premium"
+    },
+    {
+      "item": "Live / operational environment",
+      "match": "live (?:environment|data (?:hall|centre|center)|site|building|systems?)|operational (?:site|facility|data (?:hall|centre))|occupied (?:building|premises|areas?)|business as usual",
+      "why": "productivity loss, protection, change control"
+    },
+    {
+      "item": "Security vetting",
+      "match": "\\bBPSS\\b|security (?:vetting|clearances?)|\\bDBS\\b (?:check|clearance)|escorted at all times",
+      "why": "access time and admin"
+    },
+    {
+      "item": "Temporary works",
+      "match": "temporary works",
+      "why": "design and coordinator"
+    },
+    {
+      "item": "Protection of works",
+      "match": "protect(?:ion)? of (?:the )?(?:finished|completed|installed) (?:works|work|installation)|floor protection",
+      "why": "protection materials and labour"
+    },
+    {
+      "item": "Waste management",
+      "match": "site waste management|\\bSWMP\\b|waste carrier|duty of care|segregated waste",
+      "why": "skips, segregation and paperwork"
+    },
+    {
+      "item": "Asbestos",
+      "match": "asbestos|refurbishment and demolition survey|R&D survey",
+      "why": "surveys, stop-work risk, licensed contractor"
+    },
+    {
+      "item": "Considerate Constructors",
+      "match": "considerate constructors",
+      "why": "scheme compliance cost"
+    },
+    {
+      "item": "Welfare / site accommodation",
+      "match": "welfare facilities|site accommodation|temporary (?:toilets|welfare|accommodation)",
+      "why": "preliminaries cost - check who provides it"
+    },
+    {
+      "item": "Attendances",
+      "match": "(?:general|special) attendances?|attendance(?:s)? (?:by|on) (?:the )?main contractor",
+      "why": "price whatever the main contractor does not provide"
+    },
+    {
+      "item": "Record drawings / O&Ms",
+      "match": "as built|record drawings?|O ?& ?M manuals?|operation(?:s)? and maintenance (?:manuals?|information)",
+      "why": "documentation cost"
+    },
+    {
+      "item": "Defects period",
+      "match": "defects (?:liability|rectification) period|rectification period|defects period",
+      "why": "return visits; retention held until the end"
+    },
+    {
+      "item": "Client training",
+      "match": "(?:client|employer|end user|operator)'?s? (?:staff )?training|training (?:of|for) (?:the )?(?:client|employer|end user|operators?)",
+      "why": "training hours"
+    },
+    {
+      "item": "Soft Landings",
+      "match": "soft landings|\\bGSL\\b",
+      "why": "post-handover attendance"
+    },
+    {
+      "item": "Social value / apprentices",
+      "match": "social value|apprentices?(?:hips?)?",
+      "why": "reporting and resourcing commitments"
     }
   ]
 }
